@@ -26,3 +26,8 @@ Quer contribuir? Sinta-se à vontade para abrir **Issues** ou enviar um **Pull R
 
 ### 📄 Licença
 Este projeto está licenciado sob a [MIT License](LICENSE).
+
+
+![GitHub stars](https://img.shields.io/github/stars/SeuUsuario/SeuRepositorio?style=social)
+![GitHub license](https://img.shields.io/github/license/SeuUsuario/SeuRepositorio)
+![GitHub forks](https://img.shields.io/github/forks/SeuUsuario/SeuRepositorio?style=social)
