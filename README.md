@@ -13,7 +13,7 @@
 ### 🖥️ Instalação
 1. Copie este código no seu executor:
     ```lua
-    loadstring(game:HttpGet("[https://raw.githubusercontent.com/SeuUsuario/SeuRepositorio/main/scripts/main_script.lua](https://raw.githubusercontent.com/Dexz00/DzHub/refs/heads/main/Jujutsu%20Infinite)"))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Dexz00/DzHub/refs/heads/main/Jujutsu%20Infinite"))()
     ```
 2. Execute no jogo **Jujutsu Infinite**.
 
