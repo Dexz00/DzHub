@@ -10,7 +10,7 @@
 
 ### 🖥️ Script
 Copie este código no seu executor:
-    ```lua
+    ```
     loadstring(game:HttpGet("https://raw.githubusercontent.com/Dexz00/DzHub/refs/heads/main/Jujutsu%20Infinite"))()
     ```
 
