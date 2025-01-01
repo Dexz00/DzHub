@@ -1,26 +1,18 @@
-# 🌀 Jujutsu Infinite Script
+# 🌀 Melhor Script DzHub
 
-### 🌟 Recursos
-- 🌸 **Auto Collect**: Colete automaticamente itens como Frost Petal, Spring Puff, e mais.
-- ⚔️ **Insta Kill**: Elimine mobs rapidamente com apenas um clique.
-- 🔄 **Interface Customizada**: Rayfield UI para fácil configuração.
+### 🌟 Suporte-Games
+- Jujutsu Infinite
 
 ### 📜 Compativel
 (Todos Os Executores).
 
 ---
 
-### 🖥️ Instalação
-1. Copie este código no seu executor:
+### 🖥️ Script
+Copie este código no seu executor:
     ```lua
     loadstring(game:HttpGet("https://raw.githubusercontent.com/Dexz00/DzHub/refs/heads/main/Jujutsu%20Infinite"))()
     ```
-2. Execute no jogo **Jujutsu Infinite**.
-
----
-
-### 🛠️ Contribuição
-Quer contribuir? Sinta-se à vontade para abrir **Issues** ou enviar um **Pull Request**.
 
 ---
 
