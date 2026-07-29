@@ -1,3 +1,7 @@
+if getgenv().Library then
+    getgenv().Library:Unload()
+end
+
 local Library do
     local Workspace = game:GetService("Workspace")
     local UserInputService = game:GetService("UserInputService")
@@ -7930,3 +7934,6 @@ function Library.Sections:AddLabel(TextOrData)
 
     return self:CreateLabel(TextOrData)
 end
+
+getgenv().Library = Library
+return Library
