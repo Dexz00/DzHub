@@ -1,3 +1,7 @@
+-- ============================================================
+-- [ modulo: Header.lua ]
+-- ============================================================
+
 if getgenv().Library then
     getgenv().Library:Unload()
 end
@@ -105,6 +109,10 @@ local Library do
 
     local RectNew = Rect.new
 
+-- ============================================================
+-- [ modulo: LibraryTable.lua ]
+-- ============================================================
+
     Library = {
         Theme =  { },
 
@@ -114,6 +122,13 @@ local Library do
         DefaultKeybindListPosition = UDim2.new(1, -18, 0, 120),
         DefaultHeaderLogo = "rbxassetid://75802679174420",
         DefaultHeaderLogoSize = 52,
+
+        -- Defaults da Info page (Window:CreateInfoPage). Os scripts do hub
+        -- repetiam esses mesmos valores em todo lugar — agora vivem aqui e
+        -- podem ser trocados de uma vez só.
+        DefaultInfoSubtitle = "#1 Script HUB",
+        DefaultInfoCredits = { "Lead Developer: @dexz0", "UI Library: DzLib V3" },
+        DefaultDiscordLink = "https://discord.gg/CgxQjT2F9p",
 
         Flags = { },
         KeybindRegistry = { },
@@ -180,6 +195,10 @@ local Library do
     Library.IsMobileClient = function(self)
         return UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
     end
+
+-- ============================================================
+-- [ modulo: Keys.lua ]
+-- ============================================================
 
     local Keys = {
         ["Unknown"]           = "Unknown",
@@ -254,6 +273,10 @@ local Library do
         ["LeftAlt"]           = "LeftAlt",
         ["RightAlt"]          = "RightAlt"
     }
+
+-- ============================================================
+-- [ modulo: Themes.lua ]
+-- ============================================================
 
     local Themes = {
         ["Preset"] = {
@@ -423,6 +446,10 @@ local Library do
         { Script = "DzLib_AutoExecScript", Url = "DzLib_AutoExecURL", File = "DzLib_AutoExecFile" },
         { Script = "DzHub_AutoExecScript", Url = "DzHub_AutoExecURL", File = "DzHub_AutoExecFile" }
     }
+-- ============================================================
+-- [ modulo: Tween.lua ]
+-- ============================================================
+
 
     -- Tweening
     local FadePropertyStates = setmetatable({ }, { __mode = "k" })
@@ -563,6 +590,10 @@ local Library do
             self = nil
         end
     end
+-- ============================================================
+-- [ modulo: Instances.lua ]
+-- ============================================================
+
 
     -- Instances
     local Instances = { } do
@@ -904,6 +935,10 @@ local Library do
             return Library:Connect(self.Instance.MouseLeave, Function)
         end
     end
+-- ============================================================
+-- [ modulo: Font.lua ]
+-- ============================================================
+
 
     -- Custom font
     local CustomFont = { } do
@@ -950,6 +985,10 @@ local Library do
         Library.BrandFont = BrandFontSuccess and BrandFont or Library.TitleFont
         Library.BrandFontEnum = Library.TitleFontEnum
     end
+-- ============================================================
+-- [ modulo: Holders.lua ]
+-- ============================================================
+
 
     Library.Holder = Instances:Create("ScreenGui", {
         Parent = gethui(),
@@ -983,6 +1022,10 @@ local Library do
         Enabled = false,
         ResetOnSpawn = false
     })
+-- ============================================================
+-- [ modulo: NotificationState.lua ]
+-- ============================================================
+
 
     local NotificationCards = { }
     -- Mobile: narrower so the notification card doesn't get clipped on the
@@ -1036,6 +1079,10 @@ local Library do
             end
         end
     end
+-- ============================================================
+-- [ modulo: Unload.lua ]
+-- ============================================================
+
 
     Library.Unload = function(self)
         if self.Unloading or self.Unloaded then
@@ -1081,6 +1128,10 @@ local Library do
 
         return Callback
     end
+-- ============================================================
+-- [ modulo: Utils.lua ]
+-- ============================================================
+
 
     Library.Round = function(self, Number, Float)
         local Multiplier = 1 / (Float or 1)
@@ -1154,6 +1205,10 @@ local Library do
         self.UnnamedFlags = (self.UnnamedFlags or 0) + 1
         return StringFormat("flag_number_%d", self.UnnamedFlags)
     end
+-- ============================================================
+-- [ modulo: ThemeFlags.lua ]
+-- ============================================================
+
 
     Library.AddToTheme = function(self, Item, Properties)
         -- Aceita wrappers da lib (com .Instance) OU instances raw do Roblox.
@@ -1206,6 +1261,10 @@ local Library do
     Library.ShouldIgnoreFlag = function(self, Flag)
         return self.IgnoredFlags[Flag] == true
     end
+-- ============================================================
+-- [ modulo: Config.lua ]
+-- ============================================================
+
 
     Library.GetConfig = function(self)
         local Config = { } 
@@ -1294,6 +1353,10 @@ local Library do
 
         return ReturnList
     end
+-- ============================================================
+-- [ modulo: ExecutorSettings.lua ]
+-- ============================================================
+
 
     Library.GetExecutorSettingsPath = function(self)
         local PlayerName = LocalPlayer and LocalPlayer.Name or "default"
@@ -1664,6 +1727,10 @@ local Library do
 
     Library:LoadExecutorSettings()
     Library:RefreshAutoExecQueue()
+-- ============================================================
+-- [ modulo: ThemeChange.lua ]
+-- ============================================================
+
 
     Library.ChangeItemTheme = function(self, Item, Properties)
         if self.Unloading or self.Unloaded then
@@ -1693,6 +1760,10 @@ local Library do
             end
         end
     end
+-- ============================================================
+-- [ modulo: Notification.lua ]
+-- ============================================================
+
 
     Library.Notification = function(self, Title, Description, Duration)
         if not Description and Title then
@@ -2166,6 +2237,10 @@ local Library do
             end
         end
     end
+-- ============================================================
+-- [ modulo: Colorpicker.lua ]
+-- ============================================================
+
 
     Library.CreateColorpicker = function(self, Data)
         local Colorpicker = {
@@ -2627,6 +2702,10 @@ local Library do
 
         return Colorpicker, Items 
     end
+-- ============================================================
+-- [ modulo: Keybind.lua ]
+-- ============================================================
+
 
     Library.CreateKeybind = function(self, Data)
         local Keybind = {
@@ -3089,6 +3168,10 @@ local Library do
         
         return Keybind, Items 
     end
+-- ============================================================
+-- [ modulo: Watermark.lua ]
+-- ============================================================
+
 
     do 
         Library.Watermark = function(self, Name, Logo)
@@ -3174,6 +3257,10 @@ local Library do
 
             return Watermark 
         end
+-- ============================================================
+-- [ modulo: KeybindList.lua ]
+-- ============================================================
+
 
         Library.KeybindList = function(self, Window, Data)
             Data = Data or { }
@@ -3384,6 +3471,10 @@ local Library do
 
             return KeybindList
         end
+-- ============================================================
+-- [ modulo: ToggleButton.lua ]
+-- ============================================================
+
 
         Library.ToggleButton = function(self, Window, Data)
             Data = Data or { }
@@ -3490,14 +3581,15 @@ local Library do
             ToggleButton:SetIcon(Data.Icon)
             return ToggleButton
         end
+-- ============================================================
+-- [ modulo: Window.lua ]
+-- ============================================================
+
 
         Library.Window = function(self, Data)
             Data = Data or { }
 
             local HideLogo = Data.HideLogo or Data.hidelogo or Data.Logo == false or Data.logo == false
-            local HasTitleCrown = Data.TitleCrown or Data.titlecrown or false
-            local TitleCrownColor = Data.TitleCrownColor or Data.titlecrowncolor or Library.Theme["Text"]
-            local TitleCrownIcon = Data.TitleCrownIcon or Data.titlecrownicon or "crown"
 
             local Window = {
                 Name = Data.Name or Data.name or "Window",
@@ -3505,6 +3597,9 @@ local Library do
                 Logo = (not HideLogo) and (Data.Logo or Data.logo or self.DefaultHeaderLogo or "rbxassetid://81441172534384") or nil,
 
                 Pages = { },
+                Panes = { },
+                ActivePane = nil,
+                FlyoutPage = nil,
                 Items = { },
                 SidebarGroups = { },
                 SidebarGroupCount = 0,
@@ -3525,7 +3620,6 @@ local Library do
             local SearchIcon = Data.SearchIcon or Data.searchicon or "search"
             if self.ResolveIcon then
                 SearchIcon = self:ResolveIcon(SearchIcon)
-                TitleCrownIcon = self:ResolveIcon(TitleCrownIcon)
             end
 
             if type(SearchIcon) ~= "string" or (not SearchIcon:match("^rbxassetid://") and not SearchIcon:match("^https?://")) then
@@ -3546,8 +3640,8 @@ local Library do
                 BrandSecondary = nil
             end
 
-            local HeaderHeight = HasTitleCrown and 58 or 46
-            local PagesCardTop = HasTitleCrown and 88 or 74
+            local HeaderHeight = 46
+            local PagesCardTop = 74
             local CompactTitle = tostring(BrandPrimary):sub(1, 1) .. (BrandSecondary and tostring(BrandSecondary):sub(1, 1) or "")
             local WindowControlCount = Window.SidebarCollapseEnabled and 4 or 3
             local WindowControlsWidth = (WindowControlCount * 30) + ((WindowControlCount - 1) * 6)
@@ -3712,23 +3806,6 @@ local Library do
                         TextXAlignment = Enum.TextXAlignment.Left,
                         TextYAlignment = Enum.TextYAlignment.Center
                     }):AddToTheme({TextColor3 = 'Text'})
-                end
-
-                if HasTitleCrown then
-                    Items["TitleCrown"] = Instances:Create("ImageLabel", {
-                        Parent = Items["Title"].Instance,
-                        Name = "\0",
-                        BackgroundTransparency = 1,
-                        BorderColor3 = FromRGB(0, 0, 0),
-                        Image = TitleCrownIcon,
-                        ImageColor3 = TitleCrownColor,
-                        Rotation = -26,
-                        Position = UDim2FromOffset(-12, -24),
-                        Size = UDim2FromOffset(28, 28),
-                        ScaleType = Enum.ScaleType.Fit,
-                        BorderSizePixel = 0,
-                        ZIndex = 2
-                    })
                 end
 
                 Items["CompactBadge"] = Instances:Create("TextLabel", {
@@ -3941,6 +4018,71 @@ local Library do
                     BorderSizePixel = 0
                 })
 
+                -- ── Flyout de sub-tabs ───────────────────────────────────
+                -- Com a sidebar colapsada não há espaço pro accordion inline,
+                -- então as sub-tabs saem num painel flutuante ao lado do ícone
+                -- da tab. O SubList é reparentado pra cá (mesmos botões, mesmo
+                -- estado) e devolvido ao fechar.
+                Items["Flyout"] = Instances:Create("Frame", {
+                    Parent = Items["MainFrame"].Instance,
+                    Name = "\0",
+                    Visible = false,
+                    BackgroundColor3 = Library.Theme["Panel"],
+                    BorderColor3 = FromRGB(0, 0, 0),
+                    BorderSizePixel = 0,
+                    Position = UDim2FromOffset(0, 0),
+                    Size = UDim2.new(0, 196, 0, 0),
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    ZIndex = 60
+                }):AddToTheme({BackgroundColor3 = 'Panel'})
+
+                Instances:Create("UICorner", {
+                    Parent = Items["Flyout"].Instance,
+                    Name = "\0",
+                    CornerRadius = UDimNew(0, 14)
+                })
+
+                Instances:Create("UIStroke", {
+                    Parent = Items["Flyout"].Instance,
+                    Name = "\0",
+                    Color = Library.Theme["Outline"],
+                    ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+                }):AddToTheme({Color = 'Outline'})
+
+                Instances:Create("UIPadding", {
+                    Parent = Items["Flyout"].Instance,
+                    Name = "\0",
+                    PaddingTop = UDimNew(0, 10),
+                    PaddingBottom = UDimNew(0, 10),
+                    PaddingLeft = UDimNew(0, 10),
+                    PaddingRight = UDimNew(0, 10)
+                })
+
+                Instances:Create("UIListLayout", {
+                    Parent = Items["Flyout"].Instance,
+                    Name = "\0",
+                    Padding = UDimNew(0, 6),
+                    SortOrder = Enum.SortOrder.LayoutOrder
+                })
+
+                Items["FlyoutTitle"] = Instances:Create("TextLabel", {
+                    Parent = Items["Flyout"].Instance,
+                    Name = "\0",
+                    FontFace = Library.Font,
+                    TextColor3 = Library.Theme["TextMuted"],
+                    TextTransparency = 0.15,
+                    Text = "",
+                    Size = UDim2.new(1, 0, 0, 14),
+                    BackgroundTransparency = 1,
+                    BorderColor3 = FromRGB(0, 0, 0),
+                    BorderSizePixel = 0,
+                    LayoutOrder = 1,
+                    TextTruncate = Enum.TextTruncate.AtEnd,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextSize = 13,
+                    ZIndex = 61
+                }):AddToTheme({TextColor3 = 'TextMuted'})
+
                 -- ── Loading overlay ──────────────────────────────────────
                 -- Sits on top of every Window child while the host script is
                 -- adding tabs/sections. Hidden by Window:HideLoading() — or
@@ -4096,6 +4238,231 @@ local Library do
                 return GroupItems
             end
 
+            -- ══════════════════════════════════════════════════════════════
+            -- Panes (tabs + sub-tabs)
+            -- ══════════════════════════════════════════════════════════════
+            -- Um "pane" é qualquer coisa que ocupa a área de conteúdo: uma tab
+            -- sem filhos ou uma sub-tab. A ativação é centralizada aqui pra que
+            -- o accordion, o rail e os destaques da sidebar fiquem sempre em
+            -- sincronia com o que está na tela.
+
+            function Window:RegisterPane(Pane)
+                if type(Pane) ~= "table" then
+                    return
+                end
+
+                TableInsert(Window.Panes, Pane)
+                return Pane
+            end
+
+            function Window:ActivatePane(Pane, Animate)
+                if type(Pane) ~= "table" or not Pane.IsPane then
+                    return
+                end
+
+                -- Clicar numa tab que só serve de container abre a sub-tab que
+                -- estava ativa por último (ou a primeira).
+                if type(Pane.GetDefaultPane) == "function" then
+                    Pane = Pane:GetDefaultPane() or Pane
+                end
+
+                local UseTween = Animate ~= false
+                local OwnerPage = Pane.IsSubTab and Pane.Parent or Pane
+                local Dirty = { }
+
+                for _, Other in next, Window.Panes do
+                    if Other ~= Pane and (Other.Active or Other.Hovered) then
+                        Other.Active = false
+                        Other.Hovered = false
+                        Dirty[Other] = true
+                    end
+                end
+
+                if not Pane.Active or Pane.Hovered then
+                    Dirty[Pane] = true
+                end
+
+                Pane.Active = true
+                Pane.Hovered = false
+                Window.ActivePane = Pane
+
+                if Pane.IsSubTab then
+                    OwnerPage.LastActiveSub = Pane
+                end
+
+                for _, Page in next, Window.Pages do
+                    local ChildActive = (Page == OwnerPage) and Pane.IsSubTab and true or false
+
+                    if Page.ChildActive ~= ChildActive then
+                        Page.ChildActive = ChildActive
+                        Dirty[Page] = true
+                    end
+                end
+
+                for Item in next, Dirty do
+                    if type(Item.RefreshVisualState) == "function" then
+                        Item:RefreshVisualState(UseTween)
+                    end
+                end
+
+                for _, Page in next, Window.Pages do
+                    if type(Page.SetExpanded) == "function" then
+                        local ShouldExpand = (Page == OwnerPage) and Page:HasSubTabs()
+
+                        if Page.Expanded ~= ShouldExpand then
+                            Page:SetExpanded(ShouldExpand, UseTween)
+                        end
+                    end
+                end
+
+                if type(OwnerPage.RefreshRailThumb) == "function" then
+                    OwnerPage:RefreshRailThumb(UseTween)
+                end
+
+                return Pane
+            end
+
+            -- ══════════════════════════════════════════════════════════════
+            -- Flyout de sub-tabs (sidebar colapsada)
+            -- ══════════════════════════════════════════════════════════════
+
+            -- O ScreenGui usa ZIndexBehavior.Global, então o painel flutuante
+            -- só fica na frente se todos os descendentes subirem junto.
+            function Window:ApplyFlyoutZIndex(Root, Value)
+                if not Root then
+                    return
+                end
+
+                if Root:IsA("GuiObject") then
+                    Root.ZIndex = Value
+                end
+
+                for _, Descendant in next, Root:GetDescendants() do
+                    if Descendant:IsA("GuiObject") then
+                        Descendant.ZIndex = Value
+                    end
+                end
+            end
+
+            function Window:CloseFlyout()
+                local Page = Window.FlyoutPage
+
+                if not Page then
+                    return
+                end
+
+                Window.FlyoutPage = nil
+
+                local Metrics = Library.SubTabMetrics
+                local SubList = Page.Items and Page.Items["SubList"]
+                local Padding = Page.Items and Page.Items["SubListPadding"]
+
+                if SubList and SubList.Instance then
+                    Window:ApplyFlyoutZIndex(SubList.Instance, 1)
+                    SubList.Instance.Parent = Page.Items["SubHolder"].Instance
+                end
+
+                if Padding and Padding.Instance then
+                    Padding.Instance.PaddingTop = UDimNew(0, Metrics.PadTop)
+                    Padding.Instance.PaddingBottom = UDimNew(0, Metrics.PadBottom)
+                    Padding.Instance.PaddingLeft = UDimNew(0, Metrics.IndentLeft)
+                end
+
+                Items["Flyout"].Instance.Visible = false
+
+                if type(Page.RefreshSubHolder) == "function" then
+                    Page:RefreshSubHolder(false)
+                end
+            end
+
+            function Window:OpenFlyout(Page)
+                if type(Page) ~= "table" or type(Page.HasSubTabs) ~= "function" or not Page:HasSubTabs() then
+                    return
+                end
+
+                Window:CloseFlyout()
+                Window.FlyoutPage = Page
+
+                local Metrics = Library.SubTabMetrics
+                local SubList = Page.Items["SubList"]
+                local Padding = Page.Items["SubListPadding"]
+                local Count = #Page.SubTabs
+
+                Padding.Instance.PaddingTop = UDimNew(0, 0)
+                Padding.Instance.PaddingBottom = UDimNew(0, 0)
+                Padding.Instance.PaddingLeft = UDimNew(0, 0)
+
+                SubList.Instance.LayoutOrder = 2
+                SubList.Instance.Parent = Items["Flyout"].Instance
+                Window:ApplyFlyoutZIndex(SubList.Instance, 61)
+
+                Items["FlyoutTitle"].Instance.Text = tostring(Page.Name or "")
+
+                -- AutomaticSize.Y só resolve no próximo frame, então a altura
+                -- pro clamp é calculada na mão.
+                local FlyoutHeight = 20 + 14 + 6 + (Count * Metrics.Height) + ((Count - 1) * Metrics.Gap)
+                local MainFrame = Items["MainFrame"].Instance
+                local Button = Page.Items["Inactive"].Instance
+                local OffsetY = Button.AbsolutePosition.Y - MainFrame.AbsolutePosition.Y - 6
+                local MaxY = MathClamp(MainFrame.AbsoluteSize.Y - FlyoutHeight - 10, 10, 99999)
+
+                Items["Flyout"].Instance.Position = UDim2FromOffset(
+                    Window.CollapsedSidebarWidth + 8,
+                    MathClamp(OffsetY, 10, MaxY)
+                )
+                Items["Flyout"].Instance.Visible = true
+
+                if type(Page.RefreshSubHolder) == "function" then
+                    Page:RefreshSubHolder(false)
+                end
+            end
+
+            function Window:ToggleFlyout(Page)
+                if Window.FlyoutPage == Page then
+                    Window:CloseFlyout()
+                    return
+                end
+
+                Window:OpenFlyout(Page)
+            end
+
+            -- Clique fora fecha o flyout.
+            Library:Connect(UserInputService.InputBegan, function(Input)
+                if not Window.FlyoutPage then
+                    return
+                end
+
+                if Input.UserInputType ~= Enum.UserInputType.MouseButton1 and Input.UserInputType ~= Enum.UserInputType.Touch then
+                    return
+                end
+
+                local Flyout = Items["Flyout"].Instance
+                local Position = Input.Position
+                local TopLeft = Flyout.AbsolutePosition
+                local BottomRight = TopLeft + Flyout.AbsoluteSize
+
+                local InsideFlyout = Position.X >= TopLeft.X and Position.X <= BottomRight.X
+                    and Position.Y >= TopLeft.Y and Position.Y <= BottomRight.Y
+
+                if InsideFlyout then
+                    return
+                end
+
+                -- O botão da própria tab é tratado pelo handler dela (toggle).
+                local Button = Window.FlyoutPage.Items["Inactive"].Instance
+                local ButtonTopLeft = Button.AbsolutePosition
+                local ButtonBottomRight = ButtonTopLeft + Button.AbsoluteSize
+
+                local InsideButton = Position.X >= ButtonTopLeft.X and Position.X <= ButtonBottomRight.X
+                    and Position.Y >= ButtonTopLeft.Y and Position.Y <= ButtonBottomRight.Y
+
+                if InsideButton then
+                    return
+                end
+
+                Window:CloseFlyout()
+            end)
+
             function Window:RefreshSidebarHeaderLayout()
                 local Collapsed = Window.IsSidebarCollapsed
                 local ShowLogo = Collapsed and HasLogo
@@ -4125,10 +4492,6 @@ local Library do
 
                 if Items["TitleSecondary"] then
                     Items["TitleSecondary"].Instance.Visible = not Collapsed
-                end
-
-                if Items["TitleCrown"] then
-                    Items["TitleCrown"].Instance.Visible = not Collapsed
                 end
             end
 
@@ -4205,6 +4568,12 @@ local Library do
                     else
                         Window:RefreshSidebarPageLayout(Page)
                     end
+
+                    -- Colapsar a sidebar fecha o accordion inline (sem espaço
+                    -- pra ele); expandir de volta reabre o da tab ativa.
+                    if type(Page.RefreshSubHolder) == "function" then
+                        Page:RefreshSubHolder(false)
+                    end
                 end
 
                 if Animate then
@@ -4226,6 +4595,8 @@ local Library do
                 if Window.IsSidebarCollapsed == Bool then
                     return
                 end
+
+                Window:CloseFlyout()
 
                 Window.IsSidebarCollapsed = Bool
                 Window:RefreshSidebarLayout(true)
@@ -4402,6 +4773,120 @@ local Library do
             Window:SetOpen(true)
             return setmetatable(Window, Library)
         end
+-- ============================================================
+-- [ modulo: Page.lua ]
+-- ============================================================
+
+
+        -- ══════════════════════════════════════════════════════════════════
+        -- Métricas do accordion (tab pai → sub-tabs). Ficam na Library e não
+        -- em locals porque SubTab.lua é outro módulo do bundle e precisa dos
+        -- mesmos números pra posicionar o rail/thumb.
+        -- ══════════════════════════════════════════════════════════════════
+        Library.SubTabMetrics = {
+            Height      = 30,   -- altura de cada botão de sub-tab
+            Gap         = 3,    -- espaço vertical entre sub-tabs
+            PadTop      = 4,
+            PadBottom   = 6,
+            RailX       = 23,   -- alinhado com o centro do ícone da tab pai (16 + 16/2)
+            IndentLeft  = 34,   -- recuo dos botões de sub-tab
+            ThumbWidth  = 3,    -- marcador deslizante: 1px mais grosso que o rail
+            ThumbHeight = 16
+        }
+
+        Library.AccordionTweenInfo = TweenInfo.new(0.26, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+
+        Library.GetSubHolderHeight = function(self, Count)
+            local Metrics = Library.SubTabMetrics
+
+            if type(Count) ~= "number" or Count <= 0 then
+                return 0
+            end
+
+            return Metrics.PadTop + Metrics.PadBottom + (Count * Metrics.Height) + ((Count - 1) * Metrics.Gap)
+        end
+
+        Library.GetSubTabOffset = function(self, Index)
+            local Metrics = Library.SubTabMetrics
+            return Metrics.PadTop + ((Index - 1) * (Metrics.Height + Metrics.Gap))
+        end
+
+        -- Corpo de uma página: o ScrollingFrame com as duas colunas onde as
+        -- Sections são inseridas. Compartilhado entre Page e SubTab — as duas
+        -- são "panes" com exatamente o mesmo conteúdo.
+        Library.CreatePageBody = function(self, Items)
+            Items["Page"] = Instances:Create("ScrollingFrame", {
+                Parent = Library.UnusedHolder.Instance,
+                Name = "\0",
+                Visible = false,
+                Active = true,
+                AutomaticCanvasSize = Enum.AutomaticSize.Y,
+                ScrollingDirection = Enum.ScrollingDirection.Y,
+                ElasticBehavior = Enum.ElasticBehavior.Never,
+                ScrollBarThickness = 0,
+                ScrollBarImageColor3 = Library.Theme["Accent"],
+                BackgroundTransparency = 1,
+                BorderColor3 = FromRGB(0, 0, 0),
+                Size = UDim2.new(1, 0, 1, 0),
+                BorderSizePixel = 0,
+                CanvasSize = UDim2.new(0, 0, 0, 0)
+            }):AddToTheme({ScrollBarImageColor3 = 'Accent'})
+
+            Items["Columns"] = Instances:Create("Frame", {
+                Parent = Items["Page"].Instance,
+                Name = "\0",
+                BackgroundTransparency = 1,
+                BorderColor3 = FromRGB(0, 0, 0),
+                BorderSizePixel = 0,
+                Size = UDim2.new(1, 0, 0, 0),
+                AutomaticSize = Enum.AutomaticSize.Y
+            })
+
+            Instances:Create("UIListLayout", {
+                Parent = Items["Columns"].Instance,
+                Name = "\0",
+                FillDirection = Enum.FillDirection.Horizontal,
+                HorizontalFlex = Enum.UIFlexAlignment.Fill,
+                Padding = UDimNew(0, 8),
+                SortOrder = Enum.SortOrder.LayoutOrder
+            })
+
+            local function CreatePageColumn(ColumnName)
+                local Column = Instances:Create("Frame", {
+                    Parent = Items["Columns"].Instance,
+                    Name = ColumnName,
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(0.5, -4, 0, 0),
+                    BorderColor3 = FromRGB(0, 0, 0),
+                    BorderSizePixel = 0,
+                    AutomaticSize = Enum.AutomaticSize.Y
+                })
+
+                Instances:Create("UIPadding", {
+                    Parent = Column.Instance,
+                    Name = "\0",
+                    PaddingTop = UDimNew(0, 18),
+                    PaddingBottom = UDimNew(0, 18),
+                    PaddingRight = UDimNew(0, 10),
+                    PaddingLeft = UDimNew(0, 10)
+                })
+
+                Instances:Create("UIListLayout", {
+                    Parent = Column.Instance,
+                    Name = "\0",
+                    Padding = UDimNew(0, 14),
+                    SortOrder = Enum.SortOrder.LayoutOrder
+                })
+
+                return Column
+            end
+
+            Items["LeftColumn"] = CreatePageColumn("LeftColumn")
+            Items["RightColumn"] = CreatePageColumn("RightColumn")
+            Items["Column"] = Items["LeftColumn"]
+
+            return Items
+        end
 
         Library.Page = function(self, Data)
             Data = Data or { }
@@ -4414,15 +4899,42 @@ local Library do
                 Category = Data.Category or Data.category or Data.Group or Data.group or "",
 
                 Items = { },
+                SubTabs = { },
+                SectionCount = 0,
+
                 Active = false,
-                Hovered = false
+                ChildActive = false,
+                Expanded = false,
+                Hovered = false,
+                IsPane = true
             }
 
             local SidebarGroup = Page.Window:GetSidebarGroup(Page.Category)
+            local Metrics = Library.SubTabMetrics
 
-            local Items = { } do 
-                Items["Inactive"] = Instances:Create("TextButton", {
+            local Items = { } do
+                -- Wrapper: agrupa o botão da tab + o accordion de sub-tabs.
+                -- É ele quem entra no UIListLayout da sidebar (por isso o
+                -- LayoutOrder de reordenação vive aqui, não no botão).
+                Items["Wrapper"] = Instances:Create("Frame", {
                     Parent = SidebarGroup["Buttons"].Instance,
+                    Name = "\0",
+                    BackgroundTransparency = 1,
+                    BorderColor3 = FromRGB(0, 0, 0),
+                    BorderSizePixel = 0,
+                    Size = UDim2.new(1, 0, 0, 0),
+                    AutomaticSize = Enum.AutomaticSize.Y
+                })
+
+                Instances:Create("UIListLayout", {
+                    Parent = Items["Wrapper"].Instance,
+                    Name = "\0",
+                    Padding = UDimNew(0, 0),
+                    SortOrder = Enum.SortOrder.LayoutOrder
+                })
+
+                Items["Inactive"] = Instances:Create("TextButton", {
+                    Parent = Items["Wrapper"].Instance,
                     Name = "\0",
                     FontFace = Library.Font,
                     TextColor3 = FromRGB(0, 0, 0),
@@ -4432,6 +4944,7 @@ local Library do
                     BackgroundTransparency = 1,
                     Size = UDim2.new(1, 0, 0, 42),
                     BorderSizePixel = 0,
+                    LayoutOrder = 1,
                     TextSize = 14
                 })
 
@@ -4509,25 +5022,74 @@ local Library do
                     TextXAlignment = Enum.TextXAlignment.Left
                 }):AddToTheme({TextColor3 = 'TextMuted'})
 
-                Items["Page"] = Instances:Create("ScrollingFrame", {
-                    Parent = Library.UnusedHolder.Instance,
+                -- Chevron: só aparece quando a tab ganha sub-tabs. Gira de
+                -- 0° (fechado) pra 90° (aberto).
+                Items["Chevron"] = Instances:Create("ImageLabel", {
+                    Parent = Items["Background"].Instance,
                     Name = "\0",
                     Visible = false,
-                    Active = true,
-                    AutomaticCanvasSize = Enum.AutomaticSize.Y,
-                    ScrollingDirection = Enum.ScrollingDirection.Y,
-                    ElasticBehavior = Enum.ElasticBehavior.Never,
-                    ScrollBarThickness = 0,
-                    ScrollBarImageColor3 = Library.Theme["Accent"],
+                    ScaleType = Enum.ScaleType.Fit,
+                    BorderColor3 = FromRGB(0, 0, 0),
+                    Image = Library:ResolveIcon("chevron-right"),
+                    ImageColor3 = Library.Theme["TextMuted"],
+                    ImageTransparency = 0.45,
+                    BackgroundTransparency = 1,
+                    AnchorPoint = Vector2New(1, 0.5),
+                    Position = UDim2.new(1, -14, 0.5, 0),
+                    Size = UDim2FromOffset(14, 14),
+                    BorderSizePixel = 0
+                }):AddToTheme({ImageColor3 = 'TextMuted'})
+
+                -- Accordion. ClipsDescendants + altura animada = expansão suave.
+                Items["SubHolder"] = Instances:Create("Frame", {
+                    Parent = Items["Wrapper"].Instance,
+                    Name = "\0",
+                    Visible = false,
+                    ClipsDescendants = true,
                     BackgroundTransparency = 1,
                     BorderColor3 = FromRGB(0, 0, 0),
-                    Size = UDim2.new(1, 0, 1, 0),
                     BorderSizePixel = 0,
-                    CanvasSize = UDim2.new(0, 0, 0, 0)
-                }):AddToTheme({ScrollBarImageColor3 = 'Accent'})
+                    LayoutOrder = 2,
+                    Size = UDim2.new(1, 0, 0, 0)
+                })
 
-                Items["Columns"] = Instances:Create("Frame", {
-                    Parent = Items["Page"].Instance,
+                Items["Rail"] = Instances:Create("Frame", {
+                    Parent = Items["SubHolder"].Instance,
+                    Name = "\0",
+                    BorderColor3 = FromRGB(0, 0, 0),
+                    BorderSizePixel = 0,
+                    Position = UDim2FromOffset(Metrics.RailX, 6),
+                    Size = UDim2.new(0, 2, 1, -14),
+                    BackgroundTransparency = 0.15,
+                    BackgroundColor3 = Library.Theme["OutlineSoft"]
+                }):AddToTheme({BackgroundColor3 = 'OutlineSoft'})
+
+                Instances:Create("UICorner", {
+                    Parent = Items["Rail"].Instance,
+                    Name = "\0",
+                    CornerRadius = UDimNew(1, 0)
+                })
+
+                -- Marcador que desliza pelo rail até a sub-tab ativa.
+                Items["RailThumb"] = Instances:Create("Frame", {
+                    Parent = Items["SubHolder"].Instance,
+                    Name = "\0",
+                    BorderColor3 = FromRGB(0, 0, 0),
+                    BorderSizePixel = 0,
+                    Position = UDim2FromOffset(Metrics.RailX - 1, Metrics.PadTop),
+                    Size = UDim2FromOffset(Metrics.ThumbWidth, Metrics.ThumbHeight),
+                    BackgroundTransparency = 1,
+                    BackgroundColor3 = Library.Theme["Accent"]
+                }):AddToTheme({BackgroundColor3 = 'Accent'})
+
+                Instances:Create("UICorner", {
+                    Parent = Items["RailThumb"].Instance,
+                    Name = "\0",
+                    CornerRadius = UDimNew(1, 0)
+                })
+
+                Items["SubList"] = Instances:Create("Frame", {
+                    Parent = Items["SubHolder"].Instance,
                     Name = "\0",
                     BackgroundTransparency = 1,
                     BorderColor3 = FromRGB(0, 0, 0),
@@ -4535,73 +5097,146 @@ local Library do
                     Size = UDim2.new(1, 0, 0, 0),
                     AutomaticSize = Enum.AutomaticSize.Y
                 })
-                
-                Instances:Create("UIListLayout", {
-                    Parent = Items["Columns"].Instance,
+
+                Items["SubListPadding"] = Instances:Create("UIPadding", {
+                    Parent = Items["SubList"].Instance,
                     Name = "\0",
-                    FillDirection = Enum.FillDirection.Horizontal,
-                    HorizontalFlex = Enum.UIFlexAlignment.Fill,
-                    Padding = UDimNew(0, 8),
+                    PaddingTop = UDimNew(0, Metrics.PadTop),
+                    PaddingBottom = UDimNew(0, Metrics.PadBottom),
+                    PaddingLeft = UDimNew(0, Metrics.IndentLeft),
+                    PaddingRight = UDimNew(0, 0)
+                })
+
+                Instances:Create("UIListLayout", {
+                    Parent = Items["SubList"].Instance,
+                    Name = "\0",
+                    Padding = UDimNew(0, Metrics.Gap),
                     SortOrder = Enum.SortOrder.LayoutOrder
                 })
 
-                local function CreatePageColumn(ColumnName)
-                    local Column = Instances:Create("Frame", {
-                        Parent = Items["Columns"].Instance,
-                        Name = ColumnName,
-                        BackgroundTransparency = 1,
-                        Size = UDim2.new(0.5, -4, 0, 0),
-                        BorderColor3 = FromRGB(0, 0, 0),
-                        BorderSizePixel = 0,
-                        AutomaticSize = Enum.AutomaticSize.Y
-                    })
-
-                    Instances:Create("UIPadding", {
-                        Parent = Column.Instance,
-                        Name = "\0",
-                        PaddingTop = UDimNew(0, 18),
-                        PaddingBottom = UDimNew(0, 18),
-                        PaddingRight = UDimNew(0, 10),
-                        PaddingLeft = UDimNew(0, 10)
-                    })
-
-                    Instances:Create("UIListLayout", {
-                        Parent = Column.Instance,
-                        Name = "\0",
-                        Padding = UDimNew(0, 14),
-                        SortOrder = Enum.SortOrder.LayoutOrder
-                    })
-
-                    return Column
-                end
-
-                Items["LeftColumn"] = CreatePageColumn("LeftColumn")
-                Items["RightColumn"] = CreatePageColumn("RightColumn")
-                Items["Column"] = Items["LeftColumn"]
+                Library:CreatePageBody(Items)
 
                 Page.Items = Items
+            end
+
+            function Page:HasSubTabs()
+                return #Page.SubTabs > 0
+            end
+
+            -- Se a tab pai tem Sections próprias, ela continua sendo um pane
+            -- clicável mesmo com sub-tabs. Se não tem, clicar nela apenas abre
+            -- o accordion e ativa a primeira sub.
+            function Page:HasOwnContent()
+                return (Page.SectionCount or 0) > 0
+            end
+
+            function Page:GetDefaultPane()
+                if Page:HasSubTabs() and not Page:HasOwnContent() then
+                    return Page.LastActiveSub or Page.SubTabs[1]
+                end
+
+                return Page
+            end
+
+            -- Reposiciona/redimensiona o accordion. `Animate` controla se a
+            -- altura vai por tween ou instantânea (usado nos refreshes de tema
+            -- e de collapse da sidebar, onde animar seria ruído visual).
+            function Page:RefreshSubHolder(Animate)
+                local Count = #Page.SubTabs
+
+                if Count == 0 then
+                    Items["SubHolder"].Instance.Visible = false
+                    Items["SubHolder"].Instance.Size = UDim2.new(1, 0, 0, 0)
+                    return
+                end
+
+                local Detached = Page.Window.FlyoutPage == Page
+                local Open = Page.Expanded and not Page.Window.IsSidebarCollapsed and not Detached
+                local Height = Open and Library:GetSubHolderHeight(Count) or 0
+
+                -- Fica sempre visível: quem "esconde" é a altura 0 + o
+                -- ClipsDescendants. Alternar Visible aqui cortaria a animação
+                -- de fechamento pela metade.
+                Items["SubHolder"].Instance.Visible = true
+
+                if Animate then
+                    Items["SubHolder"]:Tween(Library.AccordionTweenInfo, {Size = UDim2.new(1, 0, 0, Height)})
+                else
+                    Items["SubHolder"].Instance.Size = UDim2.new(1, 0, 0, Height)
+                end
+
+                Page:RefreshRailThumb(Animate)
+            end
+
+            function Page:RefreshRailThumb(Animate)
+                local ActiveIndex
+
+                for Index, SubTab in next, Page.SubTabs do
+                    if SubTab.Active then
+                        ActiveIndex = Index
+                        break
+                    end
+                end
+
+                local Show = ActiveIndex ~= nil and Page.Expanded and not Page.Window.IsSidebarCollapsed
+                local TargetY = Library:GetSubTabOffset(ActiveIndex or 1) + ((Metrics.Height - Metrics.ThumbHeight) / 2)
+                local Goal = {
+                    Position = UDim2FromOffset(Metrics.RailX - 1, TargetY),
+                    BackgroundTransparency = Show and 0 or 1
+                }
+
+                if Animate then
+                    Items["RailThumb"]:Tween(Library.AccordionTweenInfo, Goal)
+                else
+                    Items["RailThumb"].Instance.Position = Goal.Position
+                    Items["RailThumb"].Instance.BackgroundTransparency = Goal.BackgroundTransparency
+                end
+            end
+
+            function Page:SetExpanded(Bool, Animate)
+                Bool = Bool and true or false
+
+                if not Page:HasSubTabs() then
+                    Bool = false
+                end
+
+                Page.Expanded = Bool
+                Page:RefreshSubHolder(Animate)
+
+                if Animate then
+                    Items["Chevron"]:Tween(Library.AccordionTweenInfo, {Rotation = Bool and 90 or 0})
+                else
+                    Items["Chevron"].Instance.Rotation = Bool and 90 or 0
+                end
             end
 
             function Page:RefreshVisualState(Animate)
                 local UseTween = Animate == true
                 local Collapsed = Page.Window.IsSidebarCollapsed
-                local TextColor = Page.Active and Library.Theme.Text or (Page.Hovered and Library.Theme.Text or Library.Theme.TextMuted)
-                local TextTransparency = Collapsed and 1 or (Page.Active and 0 or (Page.Hovered and 0.08 or 0.22))
-                local IconColor = Page.Active and Library.Theme.Accent or (Page.Hovered and Library.Theme.Text or Library.Theme.TextMuted)
-                local IconTransparency = Page.Active and 0 or (Page.Hovered and 0.08 or 0.3)
-                local BackgroundTransparency = Collapsed and (Page.Active and 0.04 or (Page.Hovered and 0.18 or 1)) or (Page.Active and 0.08 or (Page.Hovered and 0.35 or 1))
-                local StrokeTransparency = Collapsed and (Page.Active and 0.25 or (Page.Hovered and 0.55 or 1)) or (Page.Active and 0.4 or (Page.Hovered and 0.7 or 1))
-                local AccentTransparency = Collapsed and 1 or (Page.Active and 0 or 1)
-                local AccentHeight = Collapsed and 0 or (Page.Active and 18 or 0)
+                local Highlighted = Page.Active or Page.ChildActive
+
+                local TextColor = (Highlighted or Page.Hovered) and Library.Theme.Text or Library.Theme.TextMuted
+                local TextTransparency = Collapsed and 1 or (Highlighted and 0 or (Page.Hovered and 0.08 or 0.22))
+                local IconColor = Highlighted and Library.Theme.Accent or (Page.Hovered and Library.Theme.Text or Library.Theme.TextMuted)
+                local IconTransparency = Highlighted and 0 or (Page.Hovered and 0.08 or 0.3)
+                local BackgroundTransparency = Collapsed and (Highlighted and 0.04 or (Page.Hovered and 0.18 or 1)) or (Highlighted and 0.08 or (Page.Hovered and 0.35 or 1))
+                local StrokeTransparency = Collapsed and (Highlighted and 0.25 or (Page.Hovered and 0.55 or 1)) or (Highlighted and 0.4 or (Page.Hovered and 0.7 or 1))
+                local AccentTransparency = Collapsed and 1 or (Highlighted and 0 or 1)
+                local AccentHeight = Collapsed and 0 or (Highlighted and 18 or 0)
+                local ChevronColor = Highlighted and Library.Theme.Accent or Library.Theme.TextMuted
+                local ChevronTransparency = Collapsed and 1 or (Highlighted and 0.1 or (Page.Hovered and 0.25 or 0.45))
 
                 Items["Page"].Instance.Visible = Page.Active
                 Items["Page"].Instance.Parent = Page.Active and Page.Window.Items["Content"].Instance or Library.UnusedHolder.Instance
 
                 Items["Text"]:ChangeItemTheme({TextColor3 = function()
-                    return Page.Active and Library.Theme.Text or (Page.Hovered and Library.Theme.Text or Library.Theme.TextMuted)
+                    return (Page.Active or Page.ChildActive or Page.Hovered) and Library.Theme.Text or Library.Theme.TextMuted
                 end})
                 Items["Icon"]:ChangeItemTheme({ImageColor3 = function()
-                    return Page.Active and Library.Theme.Accent or (Page.Hovered and Library.Theme.Text or Library.Theme.TextMuted)
+                    return (Page.Active or Page.ChildActive) and Library.Theme.Accent or (Page.Hovered and Library.Theme.Text or Library.Theme.TextMuted)
+                end})
+                Items["Chevron"]:ChangeItemTheme({ImageColor3 = function()
+                    return (Page.Active or Page.ChildActive) and Library.Theme.Accent or Library.Theme.TextMuted
                 end})
 
                 if UseTween then
@@ -4610,6 +5245,7 @@ local Library do
                     Items["AccentBar"]:Tween(nil, {Size = UDim2FromOffset(3, AccentHeight), BackgroundTransparency = AccentTransparency})
                     Items["Text"]:Tween(nil, {TextColor3 = TextColor, TextTransparency = TextTransparency})
                     Items["Icon"]:Tween(nil, {ImageColor3 = IconColor, ImageTransparency = IconTransparency})
+                    Items["Chevron"]:Tween(nil, {ImageColor3 = ChevronColor, ImageTransparency = ChevronTransparency})
                 else
                     Items["Background"].Instance.BackgroundTransparency = BackgroundTransparency
                     Items["Stroke"].Instance.Transparency = StrokeTransparency
@@ -4619,31 +5255,61 @@ local Library do
                     Items["Text"].Instance.TextTransparency = TextTransparency
                     Items["Icon"].Instance.ImageColor3 = IconColor
                     Items["Icon"].Instance.ImageTransparency = IconTransparency
+                    Items["Chevron"].Instance.ImageColor3 = ChevronColor
+                    Items["Chevron"].Instance.ImageTransparency = ChevronTransparency
                 end
+
+                Items["Chevron"].Instance.Visible = Page:HasSubTabs() and not Collapsed
 
                 if type(Page.Window.RefreshSidebarPageLayout) == "function" then
                     Page.Window:RefreshSidebarPageLayout(Page)
                 end
             end
 
-            function Page:Turn(Bool)
+            -- Chamado pelo Window:ActivatePane. Não decide nada — só aplica.
+            function Page:SetActive(Bool, Animate)
                 Page.Active = Bool and true or false
-                Page.Hovered = false
-                Page:RefreshVisualState(true)
+
+                if Page.Active then
+                    Page.Hovered = false
+                end
+
+                Page:RefreshVisualState(Animate ~= false)
+            end
+
+            -- Compat: `Page:Turn(true)` era a API antiga de ativação.
+            function Page:Turn(Bool)
+                if Bool then
+                    Page.Window:ActivatePane(Page)
+                else
+                    Page:SetActive(false)
+                end
+            end
+
+            function Page:Select()
+                Page.Window:ActivatePane(Page)
+                return Page
             end
 
             Items["Inactive"]:Connect("MouseButton1Down", function()
-                for Index, Value in Page.Window.Pages do 
-                    if Value == Page and Page.Active then
-                        return
-                    end
-
-                    Value:Turn(Value == Page)
+                if Page:HasSubTabs() and Page.Window.IsSidebarCollapsed then
+                    Page.Window:ToggleFlyout(Page)
+                    return
                 end
+
+                Page.Window:CloseFlyout()
+
+                if Page.Active or Page.ChildActive then
+                    -- Já é a tab ativa: não colapsa o accordion (senão o pane
+                    -- ativo ficaria sem indicação nenhuma na sidebar).
+                    return
+                end
+
+                Page.Window:ActivatePane(Page)
             end)
 
             Items["Inactive"]:Connect("MouseEnter", function()
-                if Page.Active then
+                if Page.Active or Page.ChildActive then
                     return
                 end
 
@@ -4652,7 +5318,7 @@ local Library do
             end)
 
             Items["Inactive"]:Connect("MouseLeave", function()
-                if Page.Active then
+                if Page.Active or Page.ChildActive then
                     return
                 end
 
@@ -4660,15 +5326,18 @@ local Library do
                 Page:RefreshVisualState(true)
             end)
 
-            if #Page.Window.Pages == 0 then 
-                Page:Turn(true)
-            end
-
-            Items["Inactive"].Instance.LayoutOrder = #Page.Window.Pages + 1
+            Items["Wrapper"].Instance.LayoutOrder = #Page.Window.Pages + 1
             TableInsert(Page.Window.Pages, Page)
+            Page.Window:RegisterPane(Page)
+
             Page.Window:RegisterVisualRefresher(function()
                 Page:RefreshVisualState(false)
+                Page:RefreshSubHolder(false)
             end)
+
+            if not Page.Window.ActivePane then
+                Page.Window:ActivatePane(Page)
+            end
 
             if type(Page.Window.RefreshSidebarPageLayout) == "function" then
                 Page.Window:RefreshSidebarPageLayout(Page)
@@ -4676,9 +5345,245 @@ local Library do
 
             return setmetatable(Page, Library.Pages)
         end
+-- ============================================================
+-- [ modulo: SubTab.lua ]
+-- ============================================================
+
+
+        -- ══════════════════════════════════════════════════════════════════
+        -- Sub-tab: um pane filho de uma Page. Renderiza como um item indentado
+        -- dentro do accordion da tab pai e tem exatamente as mesmas APIs de
+        -- conteúdo de uma Page (:Section, :AddSection, ...).
+        -- ══════════════════════════════════════════════════════════════════
+        Library.Pages.SubTab = function(self, Data)
+            Data = Data or { }
+
+            -- Criar uma sub-tab a partir de outra sub-tab adiciona uma irmã,
+            -- em vez de tentar aninhar um terceiro nível.
+            local Parent = self.IsSubTab and self.Parent or self
+
+            if not Parent or not Parent.Window then
+                return
+            end
+
+            local Metrics = Library.SubTabMetrics
+
+            local SubTab = {
+                Window = Parent.Window,
+                Parent = Parent,
+
+                Name = Data.Name or Data.name or "SubTab",
+
+                Items = { },
+                SectionCount = 0,
+
+                Active = false,
+                Hovered = false,
+                IsPane = true,
+                IsSubTab = true
+            }
+
+            local Index = #Parent.SubTabs + 1
+            local Items = { } do
+                Items["Inactive"] = Instances:Create("TextButton", {
+                    Parent = Parent.Items["SubList"].Instance,
+                    Name = "\0",
+                    FontFace = Library.Font,
+                    TextColor3 = FromRGB(0, 0, 0),
+                    BorderColor3 = FromRGB(0, 0, 0),
+                    Text = "",
+                    AutoButtonColor = false,
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 0, Metrics.Height),
+                    BorderSizePixel = 0,
+                    LayoutOrder = Index,
+                    TextSize = 14
+                })
+
+                Items["Background"] = Instances:Create("Frame", {
+                    Parent = Items["Inactive"].Instance,
+                    Name = "\0",
+                    BackgroundTransparency = 1,
+                    BorderColor3 = FromRGB(0, 0, 0),
+                    Size = UDim2.new(1, 0, 1, 0),
+                    BorderSizePixel = 0,
+                    BackgroundColor3 = Library.Theme["Element"]
+                }):AddToTheme({BackgroundColor3 = 'Element'})
+
+                Instances:Create("UICorner", {
+                    Parent = Items["Background"].Instance,
+                    Name = "\0",
+                    CornerRadius = UDimNew(0, 9)
+                })
+
+                Items["Stroke"] = Instances:Create("UIStroke", {
+                    Parent = Items["Background"].Instance,
+                    Name = "\0",
+                    Color = Library.Theme["OutlineSoft"],
+                    ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                    Transparency = 1
+                }):AddToTheme({Color = 'OutlineSoft'})
+
+                -- Sub-tab é só texto: o ícone da tab pai + o rail já dão a
+                -- hierarquia, e um segundo ícone indentado só polui.
+                local TextOffset = 12
+
+                Items["Text"] = Instances:Create("TextLabel", {
+                    Parent = Items["Background"].Instance,
+                    Name = "\0",
+                    FontFace = Library.Font,
+                    TextColor3 = Library.Theme["TextMuted"],
+                    TextTransparency = 0.3,
+                    Text = SubTab.Name,
+                    Size = UDim2.new(1, -(TextOffset + 10), 0, 14),
+                    AnchorPoint = Vector2New(0, 0.5),
+                    BorderSizePixel = 0,
+                    BackgroundTransparency = 1,
+                    Position = UDim2.new(0, TextOffset, 0.5, 0),
+                    BorderColor3 = FromRGB(0, 0, 0),
+                    TextTruncate = Enum.TextTruncate.AtEnd,
+                    TextSize = 14,
+                    TextXAlignment = Enum.TextXAlignment.Left
+                }):AddToTheme({TextColor3 = 'TextMuted'})
+
+                Library:CreatePageBody(Items)
+
+                SubTab.Items = Items
+            end
+
+            function SubTab:HasSubTabs()
+                return false
+            end
+
+            function SubTab:HasOwnContent()
+                return true
+            end
+
+            function SubTab:GetDefaultPane()
+                return SubTab
+            end
+
+            function SubTab:RefreshVisualState(Animate)
+                local UseTween = Animate == true
+
+                local TextColor = (SubTab.Active or SubTab.Hovered) and Library.Theme.Text or Library.Theme.TextMuted
+                local TextTransparency = SubTab.Active and 0 or (SubTab.Hovered and 0.1 or 0.3)
+                local BackgroundTransparency = SubTab.Active and 0.06 or (SubTab.Hovered and 0.42 or 1)
+                local StrokeTransparency = SubTab.Active and 0.5 or 1
+
+                Items["Page"].Instance.Visible = SubTab.Active
+                Items["Page"].Instance.Parent = SubTab.Active and SubTab.Window.Items["Content"].Instance or Library.UnusedHolder.Instance
+
+                Items["Text"]:ChangeItemTheme({TextColor3 = function()
+                    return (SubTab.Active or SubTab.Hovered) and Library.Theme.Text or Library.Theme.TextMuted
+                end})
+
+                if UseTween then
+                    Items["Background"]:Tween(nil, {BackgroundTransparency = BackgroundTransparency})
+                    Items["Stroke"]:Tween(nil, {Transparency = StrokeTransparency})
+                    Items["Text"]:Tween(nil, {TextColor3 = TextColor, TextTransparency = TextTransparency})
+                else
+                    Items["Background"].Instance.BackgroundTransparency = BackgroundTransparency
+                    Items["Stroke"].Instance.Transparency = StrokeTransparency
+                    Items["Text"].Instance.TextColor3 = TextColor
+                    Items["Text"].Instance.TextTransparency = TextTransparency
+                end
+            end
+
+            function SubTab:SetActive(Bool, Animate)
+                SubTab.Active = Bool and true or false
+
+                if SubTab.Active then
+                    SubTab.Hovered = false
+                    Parent.LastActiveSub = SubTab
+                end
+
+                SubTab:RefreshVisualState(Animate ~= false)
+            end
+
+            function SubTab:Turn(Bool)
+                if Bool then
+                    SubTab.Window:ActivatePane(SubTab)
+                else
+                    SubTab:SetActive(false)
+                end
+            end
+
+            function SubTab:Select()
+                SubTab.Window:ActivatePane(SubTab)
+                return SubTab
+            end
+
+            Items["Inactive"]:Connect("MouseButton1Down", function()
+                SubTab.Window:CloseFlyout()
+
+                if SubTab.Active then
+                    return
+                end
+
+                SubTab.Window:ActivatePane(SubTab)
+            end)
+
+            Items["Inactive"]:Connect("MouseEnter", function()
+                if SubTab.Active then
+                    return
+                end
+
+                SubTab.Hovered = true
+                SubTab:RefreshVisualState(true)
+            end)
+
+            Items["Inactive"]:Connect("MouseLeave", function()
+                if SubTab.Active then
+                    return
+                end
+
+                SubTab.Hovered = false
+                SubTab:RefreshVisualState(true)
+            end)
+
+            TableInsert(Parent.SubTabs, SubTab)
+            SubTab.Window:RegisterPane(SubTab)
+
+            SubTab.Window:RegisterVisualRefresher(function()
+                SubTab:RefreshVisualState(false)
+            end)
+
+            -- A tab pai ganhou um chevron: o texto dela precisa truncar pra
+            -- não passar por baixo dele.
+            if Parent.Items["Text"] then
+                Parent.Items["Text"].Instance.AutomaticSize = Enum.AutomaticSize.None
+                Parent.Items["Text"].Instance.TextTruncate = Enum.TextTruncate.AtEnd
+                Parent.Items["Text"].Instance.Size = UDim2.new(1, -76, 0, 15)
+            end
+
+            Parent:RefreshVisualState(false)
+
+            -- Se o pai já era o pane ativo mas não tem conteúdo próprio, o
+            -- conteúdo real passa a ser esta primeira sub-tab.
+            if Parent.Active and not Parent:HasOwnContent() then
+                SubTab.Window:ActivatePane(SubTab)
+            elseif Parent.Active or Parent.ChildActive then
+                -- A tab pai já é a ativa (com conteúdo próprio): o accordion
+                -- dela nasce aberto.
+                Parent:SetExpanded(true, false)
+            else
+                Parent:RefreshSubHolder(false)
+            end
+
+            return setmetatable(SubTab, Library.Pages)
+        end
+-- ============================================================
+-- [ modulo: Section.lua ]
+-- ============================================================
+
 
         Library.Pages.Section = function(self, Data)
             Data = Data or { }
+
+            -- Usado pelo accordion: uma tab com conteúdo próprio continua
+            -- clicável mesmo depois de ganhar sub-tabs.
+            self.SectionCount = (self.SectionCount or 0) + 1
 
             local Section = {
                 Window = self.Window,
@@ -4735,23 +5640,9 @@ local Library do
                     BorderSizePixel = 0
                 })
 
-                Items["IconBadge"] = Instances:Create("Frame", {
-                    Parent = Items["Top"].Instance,
-                    Name = "\0",
-                    AnchorPoint = Vector2New(0, 0.5),
-                    Position = UDim2.new(0, 14, 0.5, 0),
-                    Size = UDim2FromOffset(20, 20),
-                    BorderColor3 = FromRGB(0, 0, 0),
-                    BorderSizePixel = 0,
-                    BackgroundColor3 = Library.Theme["Inline"]
-                }):AddToTheme({BackgroundColor3 = 'Inline'})
-
-                Instances:Create("UICorner", {
-                    Parent = Items["IconBadge"].Instance,
-                    Name = "\0",
-                    CornerRadius = UDimNew(0, 6)
-                })
-
+                -- Sem badge de ícone: o título da section é só texto. `Data.Icon`
+                -- continua sendo aceito (e ignorado) pra não quebrar os scripts
+                -- que já passam um.
                 Items["Text"] = Instances:Create("TextLabel", {
                     Parent = Items["Top"].Instance,
                     Name = "\0",
@@ -4765,7 +5656,7 @@ local Library do
                     AnchorPoint = Vector2New(0, 0.5),
                     BorderSizePixel = 0,
                     BackgroundTransparency = 1,
-                    Position = UDim2.new(0, 42, 0.5, 0),
+                    Position = UDim2.new(0, 16, 0.5, 0),
                     AutomaticSize = Enum.AutomaticSize.X,
                     TextSize = 14,
                     TextXAlignment = Enum.TextXAlignment.Left
@@ -4781,19 +5672,6 @@ local Library do
                     BorderSizePixel = 0,
                     BackgroundColor3 = Library.Theme["OutlineSoft"]
                 }):AddToTheme({BackgroundColor3 = 'OutlineSoft'})
-
-                Items["Icon"] = Instances:Create("ImageLabel", {
-                    Parent = Items["IconBadge"].Instance,
-                    Name = "\0",
-                    ImageColor3 = Library.Theme["Accent"],
-                    BorderColor3 = FromRGB(0, 0, 0),
-                    AnchorPoint = Vector2New(0.5, 0.5),
-                    Image = Section.Icon,
-                    BackgroundTransparency = 1,
-                    Position = UDim2.new(0.5, 0, 0.5, 0),
-                    Size = UDim2.new(0, 12, 0, 12),
-                    BorderSizePixel = 0
-                }):AddToTheme({ImageColor3 = 'Accent'})
 
                 Items["Content"] = Instances:Create("Frame", {
                     Parent = Items["Section"].Instance,
@@ -4827,6 +5705,10 @@ local Library do
 
             return setmetatable(Section, Library.Sections)
         end
+-- ============================================================
+-- [ modulo: Toggle.lua ]
+-- ============================================================
+
 
         Library.Sections.Toggle = function(self, Data)
             Data = Data or { }
@@ -5149,6 +6031,10 @@ local Library do
             return Toggle 
         end
 
+-- ============================================================
+-- [ modulo: Button.lua ]
+-- ============================================================
+
         Library.Sections.Button = function(self, Data)
             Data = Data or { }
 
@@ -5267,6 +6153,10 @@ local Library do
 
             return Button
         end
+
+-- ============================================================
+-- [ modulo: Slider.lua ]
+-- ============================================================
 
         Library.Sections.Slider = function(self, Data)
             Data = Data or { }
@@ -5581,6 +6471,10 @@ local Library do
 
             return Slider 
         end
+
+-- ============================================================
+-- [ modulo: Dropdown.lua ]
+-- ============================================================
 
         Library.Sections.Dropdown = function(self, Data)
             Data = Data or { }
@@ -6397,6 +7291,10 @@ local Library do
             return Dropdown
         end
 
+-- ============================================================
+-- [ modulo: Label.lua ]
+-- ============================================================
+
         Library.Sections.Label = function(self, Name)
             local Label = {
                 Window = self.Window,
@@ -6551,6 +7449,10 @@ local Library do
 
             return Label
         end
+
+-- ============================================================
+-- [ modulo: Textbox.lua ]
+-- ============================================================
 
         Library.Sections.Textbox = function(self, Data)
             Data = Data or { }
@@ -6773,6 +7675,10 @@ local Library do
             return Textbox
         end
     end
+-- ============================================================
+-- [ modulo: SettingsPage.lua ]
+-- ============================================================
+
 
     Library.CreateSettingsPage = function(self, Window, Watermark)
         local SettingsPage = Window:Page({
@@ -7157,6 +8063,10 @@ local Library do
 
         return SettingsPage
     end
+-- ============================================================
+-- [ modulo: IconPacks.lua ]
+-- ============================================================
+
 end
 
 
@@ -7226,6 +8136,10 @@ function Library:ResolveIcon(Icon, PackName)
     local Icons = self:GetIconPack(PackName)
     return Icons[string.lower(Icon)] or Icon
 end
+-- ============================================================
+-- [ modulo: CreateWindow.lua ]
+-- ============================================================
+
 
 local OriginalWindowFunction = Library.Window
 Library.Window = function(self, Data)
@@ -7349,18 +8263,32 @@ Library.CreateWindow = function(self, Data)
     local OriginalPage = Window.Page
     local CreatingSettings = false
 
+    -- O LayoutOrder vive no Wrapper (botão da tab + accordion de sub-tabs),
+    -- que é o filho direto do UIListLayout da sidebar.
+    local function GetTabLayoutItem(Page)
+        if type(Page) ~= "table" or type(Page.Items) ~= "table" then
+            return nil
+        end
+
+        return Page.Items["Wrapper"] or Page.Items["Inactive"]
+    end
+
     local function ReorderTabs()
         local Order = 1
 
         for _, Value in Window.Pages do
-            if Value ~= Window.SettingsPage and Value.Items and Value.Items["Inactive"] then
-                Value.Items["Inactive"].Instance.LayoutOrder = Order
+            local LayoutItem = Value ~= Window.SettingsPage and GetTabLayoutItem(Value)
+
+            if LayoutItem then
+                LayoutItem.Instance.LayoutOrder = Order
                 Order += 1
             end
         end
 
-        if Window.SettingsPage and Window.SettingsPage.Items and Window.SettingsPage.Items["Inactive"] then
-            Window.SettingsPage.Items["Inactive"].Instance.LayoutOrder = 999999
+        local SettingsLayoutItem = Window.SettingsPage and GetTabLayoutItem(Window.SettingsPage)
+
+        if SettingsLayoutItem then
+            SettingsLayoutItem.Instance.LayoutOrder = 999999
         end
     end
 
@@ -7387,19 +8315,74 @@ Library.CreateWindow = function(self, Data)
     --   • Stats row (4 cards: Players, FPS, Ping, Uptime — auto-update)
     --   • Credits + Key Info grid (2 cols)
     --
+    -- TUDO tem default: `Window:CreateInfoPage()` sem argumento nenhum já
+    -- monta a tab inteira (incluindo o loop de stats). Passe só o que quiser
+    -- sobrescrever.
+    --
     -- opts = {
     --   tabName    = "Info" (default),
     --   tabIcon    = "info" (default),
-    --   subtitle   = "#1 Script Hub",       -- texto secundário do banner
-    --   tags       = {"Premium", "Free"},   -- chips no canto direito
-    --   credits    = {"Lead Dev: @x", ...}, -- linhas do Credits card
-    --   keyInfo    = {"Game: x", ...},      -- linhas do Key Info card
-    --   onCopyDiscord = function() end,     -- opcional — adiciona botão
+    --   subtitle   = Library.DefaultInfoSubtitle,
+    --   gameName   = Window.SubName,        -- usado na linha "Game:" do Key Info
+    --   devMode    = false,                 -- troca a tag "Live" por "DevMode"
+    --   tags       = {"Free", "Live"},      -- chips no canto direito
+    --   credits    = Library.DefaultInfoCredits,
+    --   keyInfo    = {Game/Place ID/Game ID/Job ID},
+    --   discordLink   = Library.DefaultDiscordLink,
+    --   onCopyDiscord = function() end,     -- default: copia o discordLink
+    --   autoStats  = true,                  -- false desliga o loop de stats
     -- }
     -- Retorna: page, statHandles {players, fps, ping, uptime} (cada um tem :SetText)
     -- ════════════════════════════════════════════════════════════════════
     function Window:CreateInfoPage(opts)
-        opts = opts or {}
+        -- Copia rasa: os defaults abaixo não devem vazar pra tabela do caller.
+        local Source = type(opts) == "table" and opts or {}
+        opts = {}
+
+        for Key, Value in pairs(Source) do
+            opts[Key] = Value
+        end
+
+        local GameName = opts.gameName or opts.GameName or Window.SubName
+
+        if type(GameName) ~= "string" or GameName == "" then
+            GameName = Window.Name
+        end
+
+        if opts.subtitle == nil then
+            opts.subtitle = Library.DefaultInfoSubtitle
+        end
+
+        if opts.tags == nil then
+            opts.tags = { "Free", opts.devMode and "DevMode" or "Live" }
+        end
+
+        if opts.credits == nil then
+            opts.credits = Library.DefaultInfoCredits
+        end
+
+        if opts.keyInfo == nil then
+            opts.keyInfo = {
+                "Game: " .. tostring(GameName),
+                "Place ID: " .. tostring(game.PlaceId),
+                "Game ID: " .. tostring(game.GameId),
+                "Job ID: " .. tostring(game.JobId),
+            }
+        end
+
+        local DiscordLink = opts.discordLink or Library.DefaultDiscordLink
+
+        if opts.onCopyDiscord == nil and type(DiscordLink) == "string" and DiscordLink ~= "" then
+            opts.onCopyDiscord = function()
+                if setclipboard then
+                    setclipboard(DiscordLink)
+                    Library:Notification("Discord", "Link copied!", 3)
+                else
+                    Library:Notification("Discord", DiscordLink, 5)
+                end
+            end
+        end
+
         local UDim2New = UDim2.new
         local UDimNew = UDim.new
         local Vector2New = Vector2.new
@@ -7721,6 +8704,53 @@ Library.CreateWindow = function(self, Data)
             end
         end
 
+        -- ── Auto-stats ───────────────────────────────────────────────────
+        -- Alimenta os 4 cards (players/fps/ping/uptime) uma vez por segundo.
+        -- Antes cada script do hub rodava esse mesmo loop na mão — e com
+        -- Connect/task.spawn crus, que sobreviviam ao :Unload(). Aqui usa
+        -- Library:Connect + Library:Thread, então some junto com a lib.
+        -- Passe autoStats = false pra alimentar os cards por conta própria.
+        if statHandles and opts.autoStats ~= false then
+            local StatsPlayers = game:GetService("Players")
+            local StatsRunService = game:GetService("RunService")
+            local StatsLocalPlayer = StatsPlayers.LocalPlayer
+            local StartClock = tick()
+            local FrameCount = 0
+
+            Library:Connect(StatsRunService.RenderStepped, function()
+                FrameCount = FrameCount + 1
+            end)
+
+            Library:Thread(function()
+                while task.wait(1) do
+                    if Library.Unloading or Library.Unloaded then
+                        break
+                    end
+
+                    local FPS = FrameCount
+                    FrameCount = 0
+
+                    local Uptime = math.round(tick() - StartClock)
+                    local Minutes = math.floor(Uptime / 60)
+                    local Seconds = Uptime % 60
+
+                    local OkCount, PlayerCount = pcall(function()
+                        return #StatsPlayers:GetPlayers()
+                    end)
+
+                    local Ping
+                    pcall(function()
+                        Ping = math.round(StatsLocalPlayer:GetNetworkPing() * 1000)
+                    end)
+
+                    statHandles.players:SetText((OkCount and PlayerCount or "?") .. "/" .. tostring(StatsPlayers.MaxPlayers or "?"))
+                    statHandles.fps:SetText(tostring(FPS))
+                    statHandles.ping:SetText(Ping and (Ping .. "ms") or "--")
+                    statHandles.uptime:SetText((Minutes > 0 and Minutes .. "m " or "") .. Seconds .. "s")
+                end
+            end)
+        end
+
         return page, statHandles
     end
 
@@ -7787,9 +8817,14 @@ Library.CreateWindow = function(self, Data)
 
     return Window
 end
+-- ============================================================
+-- [ modulo: Aliases.lua ]
+-- ============================================================
+
 
 Library.CreateTab = Library.Page
 Library.Pages.CreateSection = Library.Pages.Section
+Library.Pages.CreateSubTab = Library.Pages.SubTab
 
 Library.Sections.CreateButton = Library.Sections.Button
 Library.Sections.CreateToggle = Library.Sections.Toggle
@@ -7843,6 +8878,13 @@ function Library:AddTab(NameOrData, Icon)
 
     return self:Page(Data)
 end
+
+-- Sub-tabs são só texto (sem ícone), por isso a assinatura não recebe um.
+function Library.Pages:AddSubTab(NameOrData)
+    return self:SubTab(NormalizeNamedData(NameOrData))
+end
+
+Library.Pages.AddSub = Library.Pages.AddSubTab
 
 function Library.Pages:AddSection(NameOrData, Icon)
     local Data = NormalizeNamedData(NameOrData, Icon)
@@ -7934,6 +8976,10 @@ function Library.Sections:AddLabel(TextOrData)
 
     return self:CreateLabel(TextOrData)
 end
+-- ============================================================
+-- [ modulo: Footer.lua ]
+-- ============================================================
+
 
 getgenv().Library = Library
 return Library
