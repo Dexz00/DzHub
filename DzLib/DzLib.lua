@@ -6479,6 +6479,8 @@ local Library do
                 Default = Data.Default or Data.default or nil,
                 Callback = Data.Callback or Data.callback or function() end,
                 Multi = Data.Multi or Data.multi or false,
+                -- A busca agora é sempre visível, então o threshold virou no-op.
+                -- Continua aceito pra não quebrar os scripts que já passam.
                 SearchThreshold = Data.SearchThreshold or Data.searchthreshold or 6,
 
                 Value = { },
@@ -6486,7 +6488,22 @@ local Library do
                 IsOpen = false
             }
 
-            local Items = { } do 
+            -- Métricas do drawer inline (abre embaixo do campo, empurrando os
+            -- elementos seguintes da section — não é mais um painel lateral).
+            local DrawerPad = 8
+            local DrawerGap = 6
+            local SearchHeight = 30
+            local SearchGap = 8
+            local OptionHeight = 32
+            local OptionGap = 6
+            local MaxListHeight = 184 -- 5 opções exatas; o resto rola
+            local ListTop = DrawerPad + SearchHeight + SearchGap
+
+            local HeaderHeight = 52
+            local UseStackedLayout = true
+            local FieldWidth = 0
+
+            local Items = { } do
                 Items["Dropdown"] = Instances:Create("Frame", {
                     Parent = Dropdown.Section.Items["Content"].Instance,
                     Name = "\0",
@@ -6495,7 +6512,7 @@ local Library do
                     Size = UDim2.new(1, 0, 0, 52),
                     BorderSizePixel = 0
                 })
-                
+
                 Items["Text"] = Instances:Create("TextLabel", {
                     Parent = Items["Dropdown"].Instance,
                     Name = "\0",
@@ -6503,15 +6520,15 @@ local Library do
                     TextColor3 = Library.Theme["Text"],
                     BorderColor3 = FromRGB(0, 0, 0),
                     Text = Dropdown.Name,
-                    AnchorPoint = Vector2New(0, 0.5),
+                    AnchorPoint = Vector2New(0, 0),
                     Size = UDim2.new(0, 0, 0, 15),
                     BackgroundTransparency = 1,
-                    Position = UDim2.new(0, 0, 0.5, 0),
+                    Position = UDim2.new(0, 0, 0, 0),
                     BorderSizePixel = 0,
                     AutomaticSize = Enum.AutomaticSize.X,
                     TextSize = 16
                 }):AddToTheme({TextColor3 = 'Text'})
-                
+
                 Items["RealDropdown"] = Instances:Create("TextButton", {
                     Parent = Items["Dropdown"].Instance,
                     Name = "\0",
@@ -6520,27 +6537,27 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Text = "",
                     AutoButtonColor = false,
-                    AnchorPoint = Vector2New(1, 1),
-                    Position = UDim2.new(1, 0, 1, 0),
-                    Size = UDim2.new(0, 200, 0, 30),
+                    AnchorPoint = Vector2New(0, 0),
+                    Position = UDim2.new(0, 0, 0, 22),
+                    Size = UDim2.new(1, 0, 0, 30),
                     BorderSizePixel = 0,
                     TextSize = 14,
                     BackgroundColor3 = Library.Theme["Element"]
                 }):AddToTheme({BackgroundColor3 = 'Element'})
-                
+
                 Instances:Create("UICorner", {
                     Parent = Items["RealDropdown"].Instance,
                     Name = "\0",
                     CornerRadius = UDimNew(0, 6)
                 })
-                
+
                 Items["Stroke"] = Instances:Create("UIStroke", {
                     Parent = Items["RealDropdown"].Instance,
                     Name = "\0",
                     Color = Library.Theme["Outline"],
                     ApplyStrokeMode = Enum.ApplyStrokeMode.Border
                 }):AddToTheme({Color = 'Outline'})
-                
+
                 Items["Value"] = Instances:Create("TextLabel", {
                     Parent = Items["RealDropdown"].Instance,
                     Name = "\0",
@@ -6559,12 +6576,15 @@ local Library do
                     TextXAlignment = Enum.TextXAlignment.Left,
                     TextSize = 16
                 }):AddToTheme({TextColor3 = 'Text'})
-                
+
                 Items["Icon"] = Instances:Create("ImageLabel", {
                     Parent = Items["RealDropdown"].Instance,
                     Name = "\0",
                     ImageColor3 = Library.Theme["Text"],
-                    Rotation = 270,
+                    -- A arte aponta pra baixo em 0°: fechado = ▼, aberto = ▲.
+                    -- (Era 270°/90° — seta pro lado — de quando o painel abria
+                    -- na lateral em vez de embaixo.)
+                    Rotation = 0,
                     BorderColor3 = FromRGB(0, 0, 0),
                     AnchorPoint = Vector2New(1, 0.5),
                     Image = "rbxassetid://72690112230014",
@@ -6573,7 +6593,7 @@ local Library do
                     Size = UDim2.new(0, 16, 0, 16),
                     BorderSizePixel = 0
                 }):AddToTheme({ImageColor3 = 'Text'})
-                
+
                 Instances:Create("Frame", {
                     Parent = Items["RealDropdown"].Instance,
                     Name = "\0",
@@ -6583,42 +6603,29 @@ local Library do
                     Size = UDim2.new(0, 1, 1, 0),
                     BorderSizePixel = 0,
                     BackgroundColor3 = Library.Theme["Outline"]
-                }):AddToTheme({BackgroundColor3 = 'Outline'})       
-                
+                }):AddToTheme({BackgroundColor3 = 'Outline'})
+
+                -- Drawer: filho do próprio Dropdown, logo abaixo do campo.
+                -- ClipsDescendants + altura animada = expansão suave.
                 Items["OptionHolder"] = Instances:Create("Frame", {
-                    Parent = Library.UnusedHolder.Instance,
+                    Parent = Items["Dropdown"].Instance,
                     Name = "\0",
                     Visible = false,
                     Active = true,
-                    AnchorPoint = Vector2New(1, 0),
-                    Size = UDim2.new(0, 0, 1, 0),
-                    Position = UDim2.new(1, 0, 0, 0),
-                    ZIndex = 4,
+                    AnchorPoint = Vector2New(0, 0),
+                    Position = UDim2.new(0, 0, 0, 58),
+                    Size = UDim2.new(1, 0, 0, 0),
+                    ZIndex = 2,
                     BorderColor3 = FromRGB(0, 0, 0),
                     BorderSizePixel = 0,
                     ClipsDescendants = true,
-                    BackgroundColor3 = Library.Theme["Background"]
-                }):AddToTheme({BackgroundColor3 = 'Background'})
-
-                Items["OptionHolderBlocker"] = Instances:Create("TextButton", {
-                    Parent = Items["OptionHolder"].Instance,
-                    Name = "\0",
-                    Active = true,
-                    Selectable = false,
-                    AutoButtonColor = false,
-                    Text = "",
-                    ZIndex = 4,
-                    BackgroundTransparency = 1,
-                    BorderColor3 = FromRGB(0, 0, 0),
-                    Size = UDim2.new(1, 0, 1, 0),
-                    BorderSizePixel = 0,
-                    TextSize = 14
-                })
+                    BackgroundColor3 = Library.Theme["Inline"]
+                }):AddToTheme({BackgroundColor3 = 'Inline'})
 
                 Instances:Create("UICorner", {
                     Parent = Items["OptionHolder"].Instance,
                     Name = "\0",
-                    CornerRadius = UDimNew(0, 18)
+                    CornerRadius = UDimNew(0, 10)
                 })
 
                 Items["OptionHolderStroke"] = Instances:Create("UIStroke", {
@@ -6628,73 +6635,6 @@ local Library do
                     ApplyStrokeMode = Enum.ApplyStrokeMode.Border
                 }):AddToTheme({Color = 'Outline'})
 
-                Items["PanelDivider"] = Instances:Create("Frame", {
-                    Parent = Items["OptionHolder"].Instance,
-                    Name = "\0",
-                    ZIndex = 5,
-                    BorderColor3 = FromRGB(0, 0, 0),
-                    BorderSizePixel = 0,
-                    Position = UDim2FromOffset(0, 12),
-                    Size = UDim2.new(0, 1, 1, -24),
-                    BackgroundColor3 = Library.Theme["Outline"]
-                }):AddToTheme({BackgroundColor3 = 'Outline'})
-
-                Items["PanelTopDivider"] = Instances:Create("Frame", {
-                    Parent = Items["OptionHolder"].Instance,
-                    Name = "\0",
-                    ZIndex = 5,
-                    BorderColor3 = FromRGB(0, 0, 0),
-                    Position = UDim2FromOffset(20, 48),
-                    Size = UDim2.new(1, -40, 0, 1),
-                    BorderSizePixel = 0,
-                    BackgroundColor3 = Library.Theme["Outline"]
-                }):AddToTheme({BackgroundColor3 = 'Outline'})
-
-                Items["PanelHeader"] = Instances:Create("Frame", {
-                    Parent = Items["OptionHolder"].Instance,
-                    Name = "\0",
-                    ZIndex = 5,
-                    BackgroundTransparency = 1,
-                    BorderColor3 = FromRGB(0, 0, 0),
-                    Position = UDim2FromOffset(18, 68),
-                    Size = UDim2.new(1, -36, 0, 46),
-                    BorderSizePixel = 0
-                })
-
-                Items["PanelTitle"] = Instances:Create("TextLabel", {
-                    Parent = Items["PanelHeader"].Instance,
-                    Name = "\0",
-                    FontFace = Library.Font,
-                    TextColor3 = Library.Theme["Text"],
-                    Text = Dropdown.Name,
-                    ZIndex = 5,
-                    Size = UDim2.new(1, 0, 0, 18),
-                    BackgroundTransparency = 1,
-                    BorderColor3 = FromRGB(0, 0, 0),
-                    BorderSizePixel = 0,
-                    TextTruncate = Enum.TextTruncate.AtEnd,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    TextSize = 18
-                }):AddToTheme({TextColor3 = 'Text'})
-
-                Items["PanelValue"] = Instances:Create("TextLabel", {
-                    Parent = Items["PanelHeader"].Instance,
-                    Name = "\0",
-                    FontFace = Library.Font,
-                    TextColor3 = Library.Theme["Text"],
-                    TextTransparency = 0.45,
-                    Text = "Select an option",
-                    ZIndex = 5,
-                    Position = UDim2FromOffset(0, 24),
-                    Size = UDim2.new(1, 0, 0, 16),
-                    BackgroundTransparency = 1,
-                    BorderColor3 = FromRGB(0, 0, 0),
-                    BorderSizePixel = 0,
-                    TextTruncate = Enum.TextTruncate.AtEnd,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    TextSize = 14
-                }):AddToTheme({TextColor3 = 'Text'})
-
                 Items["OptionList"] = Instances:Create("ScrollingFrame", {
                     Parent = Items["OptionHolder"].Instance,
                     Name = "\0",
@@ -6703,23 +6643,23 @@ local Library do
                     CanvasSize = UDim2.new(0, 0, 0, 0),
                     ScrollBarThickness = 0,
                     ScrollBarImageColor3 = Library.Theme["Accent"],
-                    ZIndex = 5,
+                    ZIndex = 3,
                     BackgroundTransparency = 1,
                     BorderColor3 = FromRGB(0, 0, 0),
-                    Position = UDim2FromOffset(18, 126),
-                    Size = UDim2.new(1, -36, 1, -144),
+                    Position = UDim2FromOffset(DrawerPad, ListTop),
+                    Size = UDim2.new(1, -(DrawerPad * 2), 0, 0),
                     BorderSizePixel = 0
                 }):AddToTheme({ScrollBarImageColor3 = 'Accent'})
 
+                -- Busca: sempre visível, independente de quantas opções existem.
                 Items["SearchFrame"] = Instances:Create("Frame", {
                     Parent = Items["OptionHolder"].Instance,
                     Name = "\0",
-                    Visible = false,
-                    ZIndex = 5,
+                    ZIndex = 3,
                     BackgroundColor3 = Library.Theme["Element"],
                     BorderColor3 = FromRGB(0, 0, 0),
-                    Position = UDim2FromOffset(18, 126),
-                    Size = UDim2.new(1, -36, 0, 32),
+                    Position = UDim2FromOffset(DrawerPad, DrawerPad),
+                    Size = UDim2.new(1, -(DrawerPad * 2), 0, SearchHeight),
                     BorderSizePixel = 0
                 }):AddToTheme({BackgroundColor3 = 'Element'})
 
@@ -6743,8 +6683,9 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Image = "rbxassetid://6031154871",
                     ImageTransparency = 0.4,
-                    ZIndex = 6,
-                    Position = UDim2FromOffset(10, 8),
+                    ZIndex = 4,
+                    AnchorPoint = Vector2New(0, 0.5),
+                    Position = UDim2.new(0, 10, 0.5, 0),
                     Size = UDim2FromOffset(14, 14),
                     BorderSizePixel = 0
                 }):AddToTheme({ImageColor3 = 'Text'})
@@ -6762,24 +6703,36 @@ local Library do
                     ClearTextOnFocus = false,
                     BackgroundTransparency = 1,
                     BorderColor3 = FromRGB(0, 0, 0),
-                    ZIndex = 6,
+                    ZIndex = 4,
                     Position = UDim2FromOffset(32, 0),
                     Size = UDim2.new(1, -42, 1, 0),
                     BorderSizePixel = 0,
                     TextSize = 15
                 }):AddToTheme({TextColor3 = 'Text'})
 
+                Items["EmptyLabel"] = Instances:Create("TextLabel", {
+                    Parent = Items["OptionHolder"].Instance,
+                    Name = "\0",
+                    Visible = false,
+                    FontFace = Library.Font,
+                    TextColor3 = Library.Theme["TextMuted"],
+                    TextTransparency = 0.25,
+                    Text = "No results",
+                    ZIndex = 3,
+                    BackgroundTransparency = 1,
+                    BorderColor3 = FromRGB(0, 0, 0),
+                    BorderSizePixel = 0,
+                    Position = UDim2FromOffset(DrawerPad, ListTop),
+                    Size = UDim2.new(1, -(DrawerPad * 2), 0, 20),
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextSize = 14
+                }):AddToTheme({TextColor3 = 'TextMuted'})
+
                 Items["OptionsLayout"] = Instances:Create("UIListLayout", {
                     Parent = Items["OptionList"].Instance,
                     Name = "\0",
-                    Padding = UDimNew(0, 8),
+                    Padding = UDimNew(0, OptionGap),
                     SortOrder = Enum.SortOrder.LayoutOrder
-                })
-
-                Items["OptionsPadding"] = Instances:Create("UIPadding", {
-                    Parent = Items["OptionList"].Instance,
-                    Name = "\0",
-                    PaddingBottom = UDimNew(0, 4)
                 })
             end
 
@@ -6787,89 +6740,99 @@ local Library do
                 return Dropdown.Value
             end
 
-            local function UpdateDropdownLayout()
-                local DropdownWidth = Items["Dropdown"].Instance.AbsoluteSize.X
-                if DropdownWidth <= 0 then
-                    return
-                end
-
-                local TextWidth = MathFloor(math.max(Items["Text"].Instance.AbsoluteSize.X, Items["Text"].Instance.TextBounds.X))
-                local InlineGap = 12
-                local MinimumFieldWidth = 135
-                local InlineFieldWidth = DropdownWidth - TextWidth - InlineGap
-                local UseStackedLayout = InlineFieldWidth < MinimumFieldWidth
-
-                if UseStackedLayout then
-                    Items["Dropdown"].Instance.Size = UDim2.new(1, 0, 0, 52)
-
-                    Items["Text"].Instance.AnchorPoint = Vector2New(0, 0)
-                    Items["Text"].Instance.Position = UDim2.new(0, 0, 0, 0)
-
-                    Items["RealDropdown"].Instance.AnchorPoint = Vector2New(0, 1)
-                    Items["RealDropdown"].Instance.Position = UDim2.new(0, 0, 1, 0)
-                    Items["RealDropdown"].Instance.Size = UDim2.new(1, 0, 0, 30)
-                else
-                    local FieldWidth = math.max(MinimumFieldWidth, InlineFieldWidth)
-
-                    Items["Dropdown"].Instance.Size = UDim2.new(1, 0, 0, 30)
-
-                    Items["Text"].Instance.AnchorPoint = Vector2New(0, 0.5)
-                    Items["Text"].Instance.Position = UDim2.new(0, 0, 0.5, 0)
-
-                    Items["RealDropdown"].Instance.AnchorPoint = Vector2New(1, 1)
-                    Items["RealDropdown"].Instance.Position = UDim2.new(1, 0, 1, 0)
-                    Items["RealDropdown"].Instance.Size = UDim2FromOffset(FieldWidth, 30)
-                end
-            end
-
-            function Dropdown:SetVisibility(Bool)
-                Items["Dropdown"].Instance.Visible = Bool
-            end
-
-            local DrawerWidth = InstanceNew("NumberValue")
-            DrawerWidth.Value = 0
-            local DrawerOffset = InstanceNew("NumberValue")
-            DrawerOffset.Value = 0
-            local OpenDrawerTweenInfo = TweenInfo.new(0.24, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-            local CloseDrawerTweenInfo = TweenInfo.new(0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            local OpenTweenInfo = TweenInfo.new(0.24, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+            local CloseTweenInfo = TweenInfo.new(0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
             local ArrowTweenInfo = TweenInfo.new(0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
             local TransitionId = 0
-            local WidthTween
-            local OffsetTween
 
-            local function GetOptionHolderWidth()
-                local ContentWidth = Dropdown.Window.Items["ContentShell"].Instance.AbsoluteSize.X
-                if ContentWidth <= 0 then
-                    return 340
-                end
-
-                local TargetWidth = MathClamp(MathFloor(ContentWidth * 0.42), 300, 430)
-                return math.max(0, math.min(TargetWidth, ContentWidth))
-            end
-
-            local function UpdateOptionHolderFrame()
-                Items["OptionHolder"].Instance.Position = UDim2.new(1, DrawerOffset.Value, 0, 0)
-                Items["OptionHolder"].Instance.Size = UDim2.new(0, MathFloor(DrawerWidth.Value), 1, 0)
-            end
-
-            local function GetOptionCount()
+            local function GetVisibleOptionCount()
                 local Count = 0
 
-                for _ in Dropdown.Options do
-                    Count += 1
+                for _, OptionData in Dropdown.Options do
+                    if OptionData.Button.Instance.Visible then
+                        Count += 1
+                    end
                 end
 
                 return Count
             end
 
-            local function UpdatePanelLayout()
-                local HasSearch = Items["SearchFrame"].Instance.Visible
-                local SearchHeight = HasSearch and 32 or 0
-                local SearchGap = HasSearch and 12 or 0
-                local ListTop = 126 + SearchHeight + SearchGap
+            local function GetListHeight()
+                local Count = GetVisibleOptionCount()
 
-                Items["OptionList"].Instance.Position = UDim2FromOffset(18, ListTop)
-                Items["OptionList"].Instance.Size = UDim2.new(1, -36, 1, -(ListTop + 18))
+                if Count <= 0 then
+                    return 20
+                end
+
+                return math.min((Count * OptionHeight) + ((Count - 1) * OptionGap), MaxListHeight)
+            end
+
+            local function GetDrawerHeight()
+                return ListTop + GetListHeight() + DrawerPad
+            end
+
+            -- Recalcula posição/tamanho do campo, do drawer e da própria linha.
+            -- `Animate` só é usado quando o estado aberto/fechado muda.
+            local function RefreshLayout(Animate)
+                local DropdownWidth = Items["Dropdown"].Instance.AbsoluteSize.X
+
+                if DropdownWidth > 0 then
+                    local TextWidth = MathFloor(math.max(Items["Text"].Instance.AbsoluteSize.X, Items["Text"].Instance.TextBounds.X))
+                    local InlineGap = 12
+                    local MinimumFieldWidth = 135
+                    local InlineFieldWidth = DropdownWidth - TextWidth - InlineGap
+
+                    UseStackedLayout = InlineFieldWidth < MinimumFieldWidth
+                    FieldWidth = math.max(MinimumFieldWidth, InlineFieldWidth)
+                end
+
+                if UseStackedLayout then
+                    HeaderHeight = 52
+
+                    Items["Text"].Instance.AnchorPoint = Vector2New(0, 0)
+                    Items["Text"].Instance.Position = UDim2.new(0, 0, 0, 0)
+
+                    Items["RealDropdown"].Instance.AnchorPoint = Vector2New(0, 0)
+                    Items["RealDropdown"].Instance.Position = UDim2.new(0, 0, 0, 22)
+                    Items["RealDropdown"].Instance.Size = UDim2.new(1, 0, 0, 30)
+
+                    Items["OptionHolder"].Instance.AnchorPoint = Vector2New(0, 0)
+                    Items["OptionHolder"].Instance.Position = UDim2.new(0, 0, 0, HeaderHeight + DrawerGap)
+                else
+                    HeaderHeight = 30
+
+                    Items["Text"].Instance.AnchorPoint = Vector2New(0, 0.5)
+                    Items["Text"].Instance.Position = UDim2.new(0, 0, 0, MathFloor(HeaderHeight / 2))
+
+                    Items["RealDropdown"].Instance.AnchorPoint = Vector2New(1, 0)
+                    Items["RealDropdown"].Instance.Position = UDim2.new(1, 0, 0, 0)
+                    Items["RealDropdown"].Instance.Size = UDim2FromOffset(FieldWidth, 30)
+
+                    Items["OptionHolder"].Instance.AnchorPoint = Vector2New(1, 0)
+                    Items["OptionHolder"].Instance.Position = UDim2.new(1, 0, 0, HeaderHeight + DrawerGap)
+                end
+
+                local DrawerHeight = Dropdown.IsOpen and GetDrawerHeight() or 0
+                local RowHeight = HeaderHeight + (Dropdown.IsOpen and (DrawerGap + DrawerHeight) or 0)
+                local HolderSize = UseStackedLayout
+                    and UDim2.new(1, 0, 0, DrawerHeight)
+                    or UDim2FromOffset(FieldWidth, DrawerHeight)
+
+                Items["OptionList"].Instance.Size = UDim2.new(1, -(DrawerPad * 2), 0, GetListHeight())
+
+                if Animate then
+                    local Info = Dropdown.IsOpen and OpenTweenInfo or CloseTweenInfo
+
+                    Items["OptionHolder"]:Tween(Info, {Size = HolderSize})
+                    Items["Dropdown"]:Tween(Info, {Size = UDim2.new(1, 0, 0, RowHeight)})
+                else
+                    Items["OptionHolder"].Instance.Size = HolderSize
+                    Items["Dropdown"].Instance.Size = UDim2.new(1, 0, 0, RowHeight)
+                end
+            end
+
+            function Dropdown:SetVisibility(Bool)
+                Items["Dropdown"].Instance.Visible = Bool
             end
 
             local function ApplyOptionFilter()
@@ -6880,121 +6843,64 @@ local Library do
                     local Matches = (not HasQuery) or (StringFind(StringLower(OptionData.Name), Query, 1, true) ~= nil)
                     OptionData.Button.Instance.Visible = Matches
                 end
-            end
 
-            local function UpdateSearchVisibility()
-                local ShouldShowSearch = GetOptionCount() >= Dropdown.SearchThreshold
-                Items["SearchFrame"].Instance.Visible = ShouldShowSearch
+                local IsEmpty = GetVisibleOptionCount() <= 0
 
-                if not ShouldShowSearch and Items["SearchBox"].Instance.Text ~= "" then
-                    Items["SearchBox"].Instance.Text = ""
+                Items["EmptyLabel"].Instance.Visible = IsEmpty and Dropdown.IsOpen
+                Items["OptionList"].Instance.Visible = not IsEmpty
+
+                if Dropdown.IsOpen then
+                    RefreshLayout(true)
                 end
-
-                UpdatePanelLayout()
-                ApplyOptionFilter()
-            end
-
-            local function UpdatePanelValue()
-                local ValueText = "Select an option"
-
-                if Dropdown.Multi then
-                    if type(Dropdown.Value) == "table" and #Dropdown.Value > 0 then
-                        ValueText = TableConcat(Dropdown.Value, ", ")
-                    end
-                elseif Dropdown.Value ~= nil and type(Dropdown.Value) ~= "table" then
-                    -- Guard contra Value ser a tabela inicial { } em single-mode
-                    -- (sem isso aparece "table: 0xADDR" quando Default é nil).
-                    ValueText = tostring(Dropdown.Value)
-                end
-
-                Items["PanelValue"].Instance.Text = ValueText
             end
 
             function Dropdown:SetOpen(Bool)
-                if Dropdown.IsOpen == Bool and Items["OptionHolder"].Instance.Visible == Bool then
+                Bool = Bool and true or false
+
+                if Dropdown.IsOpen == Bool then
                     return
                 end
 
-                TransitionId += 1
-                local CurrentTransition = TransitionId
                 Dropdown.IsOpen = Bool
+                TransitionId += 1
 
-                if WidthTween then
-                    WidthTween:Cancel()
-                    WidthTween = nil
-                end
+                local CurrentTransition = TransitionId
 
-                if OffsetTween then
-                    OffsetTween:Cancel()
-                    OffsetTween = nil
-                end
-
-                if Dropdown.IsOpen then 
+                if Dropdown.IsOpen then
                     Items["OptionHolder"].Instance.Visible = true
-                    Items["OptionHolder"].Instance.Parent = Dropdown.Window.Items["ContentShell"].Instance
                     Items["Stroke"]:ChangeItemTheme({Color = "Accent"})
                     Items["Stroke"]:Tween(nil, {Color = Library.Theme.Accent})
-                    Items["Icon"]:Tween(ArrowTweenInfo, {
-                        Rotation = 90
-                    })
+                    Items["Icon"]:Tween(ArrowTweenInfo, {Rotation = 180})
 
-                    DrawerWidth.Value = 0
-                    DrawerOffset.Value = 0
-                    UpdatePanelValue()
-                    UpdateOptionHolderFrame()
-
-                    WidthTween = TweenService:Create(DrawerWidth, OpenDrawerTweenInfo, {
-                        Value = GetOptionHolderWidth()
-                    })
-                    OffsetTween = TweenService:Create(DrawerOffset, OpenDrawerTweenInfo, {
-                        Value = 0
-                    })
-                    WidthTween:Play()
-                    OffsetTween:Play()
-
-                    for Index, Value in Library.OpenFrames do 
-                        if Value ~= Dropdown and not Dropdown.Section.IsSettings then 
+                    for Index, Value in Library.OpenFrames do
+                        if Value ~= Dropdown and not Dropdown.Section.IsSettings then
                             Value:SetOpen(false)
                         end
                     end
 
-                    Library.OpenFrames[Dropdown] = Dropdown 
+                    Library.OpenFrames[Dropdown] = Dropdown
                 else
-                    if Library.OpenFrames[Dropdown] then 
+                    if Library.OpenFrames[Dropdown] then
                         Library.OpenFrames[Dropdown] = nil
                     end
 
+                    Items["SearchBox"].Instance.Text = ""
                     Items["Stroke"]:ChangeItemTheme({Color = "Outline"})
                     Items["Stroke"]:Tween(nil, {Color = Library.Theme.Outline})
-                    Items["Icon"]:Tween(ArrowTweenInfo, {
-                        Rotation = 270
-                    })
+                    Items["Icon"]:Tween(ArrowTweenInfo, {Rotation = 0})
 
-                    WidthTween = TweenService:Create(DrawerWidth, CloseDrawerTweenInfo, {
-                        Value = 0
-                    })
-                    OffsetTween = TweenService:Create(DrawerOffset, CloseDrawerTweenInfo, {
-                        Value = 0
-                    })
-                    WidthTween:Play()
-                    OffsetTween:Play()
+                    -- Some com o holder assim que a animação termina: um frame
+                    -- de altura 0 ainda desenha o UIStroke, e a borda vira uma
+                    -- linha fina logo abaixo do campo.
+                    task.delay(CloseTweenInfo.Time, function()
+                        if CurrentTransition == TransitionId and not Dropdown.IsOpen then
+                            Items["OptionHolder"].Instance.Visible = false
+                        end
+                    end)
                 end
 
-                WidthTween.Completed:Connect(function()
-                    if CurrentTransition ~= TransitionId then
-                        return
-                    end
-
-                    Items["OptionHolder"].Instance.Visible = Dropdown.IsOpen
-
-                    if not Dropdown.IsOpen then
-                        Items["OptionHolder"].Instance.Parent = Library.UnusedHolder.Instance
-                        DrawerWidth.Value = 0
-                        DrawerOffset.Value = 0
-                    else
-                        Items["OptionHolder"].Instance.Parent = Dropdown.Window.Items["ContentShell"].Instance
-                    end
-                end)
+                Items["EmptyLabel"].Instance.Visible = Dropdown.IsOpen and GetVisibleOptionCount() <= 0
+                RefreshLayout(true)
             end
 
             function Dropdown:Set(Option)
@@ -7031,10 +6937,10 @@ local Library do
 
                     for Index, Value in Dropdown.Options do
                         if Value ~= OptionData then
-                            Value.Selected = false 
+                            Value.Selected = false
                             Value:Toggle("Inactive")
                         else
-                            Value.Selected = true 
+                            Value.Selected = true
                             Value:Toggle("Active")
                         end
                     end
@@ -7042,12 +6948,11 @@ local Library do
                     Items["Value"].Instance.Text = Option
                 end
 
-                if Dropdown.Callback then   
+                if Dropdown.Callback then
                     Library:SafeCall(Dropdown.Callback, Dropdown.Value)
                 end
 
-                UpdatePanelValue()
-                task.defer(UpdateDropdownLayout)
+                task.defer(RefreshLayout)
             end
 
             function Dropdown:Add(Option)
@@ -7060,31 +6965,31 @@ local Library do
                     Text = "",
                     AutoButtonColor = false,
                     BackgroundTransparency = 1,
-                    Size = UDim2.new(1, 0, 0, 34),
-                    ZIndex = 6,
+                    Size = UDim2.new(1, 0, 0, OptionHeight),
+                    ZIndex = 4,
                     BorderSizePixel = 0,
                     ClipsDescendants = true,
                     TextSize = 14,
-                    BackgroundColor3 = Library.Theme["Inline"]
-                }):AddToTheme({BackgroundColor3 = 'Inline'})
+                    BackgroundColor3 = Library.Theme["Element"]
+                }):AddToTheme({BackgroundColor3 = 'Element'})
 
                 Instances:Create("UICorner", {
                     Parent = OptionButton.Instance,
                     Name = "\0",
                     CornerRadius = UDimNew(0, 6)
                 })
-                
+
                 local OptionLiner = Instances:Create("Frame", {
                     Parent = OptionButton.Instance,
                     Name = "\0",
                     BackgroundTransparency = 1,
                     Size = UDim2.new(0, 3, 0, 0),
                     BorderColor3 = FromRGB(0, 0, 0),
-                    ZIndex = 7,
+                    ZIndex = 5,
                     BorderSizePixel = 0,
                     BackgroundColor3 = Library.Theme["Accent"]
                 }):AddToTheme({BackgroundColor3 = 'Accent'})
-                
+
                 local OptionGlow = Instances:Create("ImageLabel", {
                     Parent = OptionLiner.Instance,
                     Name = "\0",
@@ -7094,20 +6999,20 @@ local Library do
                     BorderColor3 = FromRGB(0, 0, 0),
                     Size = UDim2.new(1, 25, 1, 25),
                     AnchorPoint = Vector2New(0.5, 0.5),
-                    ZIndex = 6,
+                    ZIndex = 4,
                     Image = "http://www.roblox.com/asset/?id=18245826428",
                     BackgroundTransparency = 1,
                     Position = UDim2.new(0.5, 0, 0.5, 0),
                     BorderSizePixel = 0,
                     SliceCenter = RectNew(Vector2New(21, 21), Vector2New(79, 79))
                 }):AddToTheme({ImageColor3 = 'Accent'})
-                
+
                 Instances:Create("UICorner", {
                     Parent = OptionLiner.Instance,
                     Name = "\0",
                     CornerRadius = UDimNew(1, 0)
                 })
-                
+
                 local OptionText = Instances:Create("TextLabel", {
                     Parent = OptionButton.Instance,
                     Name = "\0",
@@ -7115,18 +7020,18 @@ local Library do
                     TextColor3 = Library.Theme["Text"],
                     TextTransparency = 0.5,
                     Text = Option,
-                    ZIndex = 7,
+                    ZIndex = 5,
                     Size = UDim2.new(1, -20, 0, 15),
                     AnchorPoint = Vector2New(0, 0.5),
                     BorderSizePixel = 0,
                     BackgroundTransparency = 1,
-                    Position = UDim2.new(0, 0, 0.5, 0),
+                    Position = UDim2.new(0, 10, 0.5, 0),
                     BorderColor3 = FromRGB(0, 0, 0),
                     TextTruncate = Enum.TextTruncate.AtEnd,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     TextSize = 16
                 }):AddToTheme({TextColor3 = 'Text'})
-                
+
                 local OptionData = {
                     Button = OptionButton,
                     Name = Option,
@@ -7135,26 +7040,26 @@ local Library do
                     Text = OptionText,
                     Selected = false
                 }
-                
+
                 function OptionData:Toggle(Value)
                     if Value == "Active" then
                         OptionData.Button:Tween(nil, {BackgroundTransparency = 0})
                         OptionData.Liner:Tween(nil, {BackgroundTransparency = 0, Size = UDim2.new(0, 3, 1, 0)})
-                        OptionData.Text:Tween(nil, {Position = UDim2.new(0, 12, 0.5 ,0), TextTransparency = 0})
+                        OptionData.Text:Tween(nil, {Position = UDim2.new(0, 20, 0.5 ,0), TextTransparency = 0})
                     else
                         OptionData.Button:Tween(nil, {BackgroundTransparency = 1})
                         OptionData.Liner:Tween(nil, {BackgroundTransparency = 1, Size = UDim2.new(0, 3, 0, 0)})
-                        OptionData.Text:Tween(nil, {Position = UDim2.new(0, 0, 0.5 ,0), TextTransparency = 0.5})
+                        OptionData.Text:Tween(nil, {Position = UDim2.new(0, 10, 0.5 ,0), TextTransparency = 0.5})
                     end
                 end
 
                 function OptionData:Set()
                     OptionData.Selected = not OptionData.Selected
 
-                    if Dropdown.Multi then 
+                    if Dropdown.Multi then
                         local Index = TableFind(Dropdown.Value, OptionData.Name)
 
-                        if Index then 
+                        if Index then
                             TableRemove(Dropdown.Value, Index)
                         else
                             TableInsert(Dropdown.Value, OptionData.Name)
@@ -7167,16 +7072,16 @@ local Library do
                         local TextFormat = #Dropdown.Value > 0 and TableConcat(Dropdown.Value, ", ") or "..."
                         Items["Value"].Instance.Text = TextFormat
                     else
-                        if OptionData.Selected then 
+                        if OptionData.Selected then
                             Dropdown.Value = OptionData.Name
                             Library.Flags[Dropdown.Flag] = OptionData.Name
 
                             OptionData.Selected = true
                             OptionData:Toggle("Active")
 
-                            for Index, Value in Dropdown.Options do 
+                            for Index, Value in Dropdown.Options do
                                 if Value ~= OptionData then
-                                    Value.Selected = false 
+                                    Value.Selected = false
                                     Value:Toggle("Inactive")
                                 end
                             end
@@ -7197,7 +7102,11 @@ local Library do
                         Library:SafeCall(Dropdown.Callback, Dropdown.Value)
                     end
 
-                    UpdatePanelValue()
+                    -- Single-select fecha o drawer ao escolher; multi mantém
+                    -- aberto pra marcar vários de uma vez.
+                    if not Dropdown.Multi then
+                        Dropdown:SetOpen(false)
+                    end
                 end
 
                 OptionData.Button:Connect("MouseButton1Down", function()
@@ -7205,7 +7114,7 @@ local Library do
                 end)
 
                 Dropdown.Options[OptionData.Name] = OptionData
-                UpdateSearchVisibility()
+                ApplyOptionFilter()
                 return OptionData
             end
 
@@ -7213,16 +7122,16 @@ local Library do
                 if Dropdown.Options[Option] then
                     Dropdown.Options[Option].Button:Clean()
                     Dropdown.Options[Option] = nil
-                    UpdateSearchVisibility()
+                    ApplyOptionFilter()
                 end
             end
 
             function Dropdown:Refresh(List)
-                for Index, Value in Dropdown.Options do 
+                for Index, Value in Dropdown.Options do
                     Dropdown:Remove(Value.Name)
                 end
 
-                for Index, Value in List do 
+                for Index, Value in List do
                     Dropdown:Add(Value)
                 end
             end
@@ -7247,29 +7156,23 @@ local Library do
                 end
             end)
 
-            Library:Connect(Dropdown.Window.Items["ContentShell"].Instance:GetPropertyChangedSignal("AbsoluteSize"), function()
-                if Dropdown.IsOpen then
-                    DrawerWidth.Value = GetOptionHolderWidth()
-                    UpdateOptionHolderFrame()
-                end
-
-                UpdatePanelLayout()
+            Library:Connect(Items["SearchBox"].Instance:GetPropertyChangedSignal("Text"), ApplyOptionFilter)
+            Library:Connect(Items["Dropdown"].Instance:GetPropertyChangedSignal("AbsoluteSize"), function()
+                RefreshLayout(false)
+            end)
+            Library:Connect(Items["Text"].Instance:GetPropertyChangedSignal("AbsoluteSize"), function()
+                RefreshLayout(false)
             end)
 
-            Library:Connect(Items["SearchBox"].Instance:GetPropertyChangedSignal("Text"), ApplyOptionFilter)
-            Library:Connect(Items["Dropdown"].Instance:GetPropertyChangedSignal("AbsoluteSize"), UpdateDropdownLayout)
-            Library:Connect(Items["Text"].Instance:GetPropertyChangedSignal("AbsoluteSize"), UpdateDropdownLayout)
-            Library:Connect(DrawerWidth:GetPropertyChangedSignal("Value"), UpdateOptionHolderFrame)
-            Library:Connect(DrawerOffset:GetPropertyChangedSignal("Value"), UpdateOptionHolderFrame)
-            task.defer(UpdateDropdownLayout)
-            task.defer(UpdatePanelValue)
-            task.defer(UpdateSearchVisibility)
+            task.defer(function()
+                RefreshLayout(false)
+            end)
 
-            for Index, Value in Dropdown.Items do 
+            for Index, Value in Dropdown.Items do
                 Dropdown:Add(Value)
             end
 
-            if Dropdown.Default then 
+            if Dropdown.Default then
                 Dropdown:Set(Dropdown.Default)
             end
 
