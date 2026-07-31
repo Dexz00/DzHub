@@ -4832,6 +4832,10 @@ local Library do
                 CanvasSize = UDim2.new(0, 0, 0, 0)
             }):AddToTheme({ScrollBarImageColor3 = 'Accent'})
 
+            -- Layout empilhado: as Sections entram uma embaixo da outra, em
+            -- largura total. As duas colunas lado a lado foram removidas —
+            -- com sub-tabs o conteúdo fica mais curto e a segunda coluna
+            -- passava a maior parte do tempo vazia.
             Items["Columns"] = Instances:Create("Frame", {
                 Parent = Items["Page"].Instance,
                 Name = "\0",
@@ -4842,48 +4846,27 @@ local Library do
                 AutomaticSize = Enum.AutomaticSize.Y
             })
 
+            Instances:Create("UIPadding", {
+                Parent = Items["Columns"].Instance,
+                Name = "\0",
+                PaddingTop = UDimNew(0, 18),
+                PaddingBottom = UDimNew(0, 18),
+                PaddingRight = UDimNew(0, 16),
+                PaddingLeft = UDimNew(0, 16)
+            })
+
             Instances:Create("UIListLayout", {
                 Parent = Items["Columns"].Instance,
                 Name = "\0",
-                FillDirection = Enum.FillDirection.Horizontal,
-                HorizontalFlex = Enum.UIFlexAlignment.Fill,
-                Padding = UDimNew(0, 8),
+                Padding = UDimNew(0, 14),
                 SortOrder = Enum.SortOrder.LayoutOrder
             })
 
-            local function CreatePageColumn(ColumnName)
-                local Column = Instances:Create("Frame", {
-                    Parent = Items["Columns"].Instance,
-                    Name = ColumnName,
-                    BackgroundTransparency = 1,
-                    Size = UDim2.new(0.5, -4, 0, 0),
-                    BorderColor3 = FromRGB(0, 0, 0),
-                    BorderSizePixel = 0,
-                    AutomaticSize = Enum.AutomaticSize.Y
-                })
-
-                Instances:Create("UIPadding", {
-                    Parent = Column.Instance,
-                    Name = "\0",
-                    PaddingTop = UDimNew(0, 18),
-                    PaddingBottom = UDimNew(0, 18),
-                    PaddingRight = UDimNew(0, 10),
-                    PaddingLeft = UDimNew(0, 10)
-                })
-
-                Instances:Create("UIListLayout", {
-                    Parent = Column.Instance,
-                    Name = "\0",
-                    Padding = UDimNew(0, 14),
-                    SortOrder = Enum.SortOrder.LayoutOrder
-                })
-
-                return Column
-            end
-
-            Items["LeftColumn"] = CreatePageColumn("LeftColumn")
-            Items["RightColumn"] = CreatePageColumn("RightColumn")
-            Items["Column"] = Items["LeftColumn"]
+            -- Aliases mantidos: `Side` nas Sections virou no-op e todo mundo
+            -- cai no mesmo container, então scripts antigos continuam rodando.
+            Items["Column"] = Items["Columns"]
+            Items["LeftColumn"] = Items["Columns"]
+            Items["RightColumn"] = Items["Columns"]
 
             return Items
         end
@@ -5590,18 +5573,24 @@ local Library do
                 Page = self,
 
                 Name = Data.Name or Data.name or "Section",
+                -- `Side` virou no-op quando a página passou a ser empilhada em
+                -- coluna única. Segue aceito pra não quebrar script nenhum.
                 Side = Data.Side or Data.side or 1,
                 Icon = Data.Icon or Data.icon or "rbxassetid://127136375066593",
 
                 Items = { }
             }
 
-            local ColumnParent = (Section.Side == 2 and Section.Page.Items["RightColumn"]) or Section.Page.Items["LeftColumn"] or Section.Page.Items["Column"]
+            local ColumnParent = Section.Page.Items["Column"] or Section.Page.Items["LeftColumn"]
 
             local Items = { } do
                 Items["SectionOutline"] = Instances:Create("Frame", {
                     Parent = ColumnParent.Instance,
                     Name = "\0",
+                    -- Com tudo num container só, a ordem de criação precisa ser
+                    -- explícita: o UIListLayout desempata LayoutOrder igual pelo
+                    -- Name, e todos os Names aqui são "\0".
+                    LayoutOrder = self.SectionCount,
                     Size = UDim2.new(1, 0, 0, 48),
                     BorderColor3 = FromRGB(0, 0, 0),
                     BorderSizePixel = 0,
