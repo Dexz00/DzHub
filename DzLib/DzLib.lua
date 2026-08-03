@@ -197,6 +197,228 @@ local Library do
     end
 
 -- ============================================================
+-- [ modulo: Storage.lua ]
+-- ============================================================
+
+
+    -- ══════════════════════════════════════════════════════════════════════
+    -- Storage — persistência que se adapta ao executor
+    -- ══════════════════════════════════════════════════════════════════════
+    -- Nem todo executor tem sandbox de arquivo funcionando. O Solara, por
+    -- exemplo, resolve caminho relativo a partir do CWD do processo
+    -- (C:\Windows\System32\workspace\...), onde criar pasta é negado — e o
+    -- `makefolder` solto no boot matava o loadstring da lib inteira.
+    --
+    -- Em vez de assumir subpastas, a lib SONDA na inicialização (escreve, lê
+    -- de volta e apaga um arquivo de teste) e fica com a primeira estratégia
+    -- que funcionar:
+    --
+    --   "folders" — DZHUB/Configs/nome.json          (ideal)
+    --   "flat"    — DZHUB_Configs_nome.json          (sem makefolder)
+    --   "memory"  — só na sessão, some ao fechar     (último recurso)
+    --
+    -- O modo "flat" é o que dá suporte real a quem só falha no create_directories
+    -- mas escreve arquivo normalmente. O "memory" ainda permite salvar e trocar
+    -- de config dentro da sessão em vez de a aba Configs ficar morta.
+    Library.Storage = {
+        Mode = "memory",
+        Memory = { },
+        Root = "DZHUB"
+    }
+
+    do
+        local Storage = Library.Storage
+
+        local function HasFunctions()
+            return type(writefile) == "function"
+                and type(readfile) == "function"
+                and type(isfile) == "function"
+        end
+
+        -- Caminho real de um item conforme o modo em vigor.
+        -- `Kind` é uma chave de Library.Folders: "Configs" | "Assets" | "Settings".
+        function Library:FilePath(Kind, Name)
+            Kind = tostring(Kind or "Configs")
+            Name = tostring(Name or "")
+
+            if Storage.Mode == "flat" then
+                return Storage.Root .. "_" .. Kind .. "_" .. Name
+            end
+
+            return Storage.Root .. "/" .. Kind .. "/" .. Name
+        end
+
+        function Library:FileWrite(Kind, Name, Content)
+            if Storage.Mode == "memory" then
+                Storage.Memory[Kind .. "/" .. Name] = tostring(Content)
+                return true
+            end
+
+            return (pcall(writefile, self:FilePath(Kind, Name), Content))
+        end
+
+        function Library:FileRead(Kind, Name)
+            if Storage.Mode == "memory" then
+                return Storage.Memory[Kind .. "/" .. Name]
+            end
+
+            local Success, Content = pcall(readfile, self:FilePath(Kind, Name))
+            return Success and Content or nil
+        end
+
+        function Library:FileExists(Kind, Name)
+            if Storage.Mode == "memory" then
+                return Storage.Memory[Kind .. "/" .. Name] ~= nil
+            end
+
+            local Success, Exists = pcall(isfile, self:FilePath(Kind, Name))
+            return Success and Exists == true
+        end
+
+        function Library:FileDelete(Kind, Name)
+            if Storage.Mode == "memory" then
+                Storage.Memory[Kind .. "/" .. Name] = nil
+                return true
+            end
+
+            if type(delfile) ~= "function" then
+                return false
+            end
+
+            if not self:FileExists(Kind, Name) then
+                return false
+            end
+
+            return (pcall(delfile, self:FilePath(Kind, Name)))
+        end
+
+        -- Nomes dos itens de um Kind, sem o caminho e sem o prefixo do modo.
+        function Library:FileList(Kind)
+            local Out = { }
+
+            if Storage.Mode == "memory" then
+                local Prefix = Kind .. "/"
+
+                for Key in next, Storage.Memory do
+                    if Key:sub(1, #Prefix) == Prefix then
+                        Out[#Out + 1] = Key:sub(#Prefix + 1)
+                    end
+                end
+
+                return Out
+            end
+
+            if type(listfiles) ~= "function" then
+                return Out
+            end
+
+            -- No modo flat tudo mora na mesma pasta, então filtra pelo prefixo.
+            local Where = Storage.Mode == "flat" and "" or (Storage.Root .. "/" .. Kind)
+            local Success, List = pcall(listfiles, Where)
+
+            if not Success or type(List) ~= "table" then
+                return Out
+            end
+
+            local FlatPrefix = Storage.Root .. "_" .. Kind .. "_"
+
+            for _, Path in next, List do
+                -- listfiles devolve caminho completo; fica só o nome do arquivo
+                local File = tostring(Path):match("[^/\\]+$")
+
+                if File then
+                    if Storage.Mode == "flat" then
+                        if File:sub(1, #FlatPrefix) == FlatPrefix then
+                            Out[#Out + 1] = File:sub(#FlatPrefix + 1)
+                        end
+                    else
+                        Out[#Out + 1] = File
+                    end
+                end
+            end
+
+            return Out
+        end
+
+        -- ── Sondagem ──────────────────────────────────────────────────────
+        -- Escreve, lê de volta e apaga. Só "escreveu sem erro" não basta: em
+        -- executor com sandbox capenga o writefile passa e o arquivo não
+        -- existe depois.
+        local function Probe()
+            local Name = "dzlib_probe.txt"
+            local Stamp = "dz"
+
+            if not Library:FileWrite("Configs", Name, Stamp) then
+                return false
+            end
+
+            local Back = Library:FileRead("Configs", Name)
+            Library:FileDelete("Configs", Name)
+
+            return Back == Stamp
+        end
+
+        if HasFunctions() then
+            -- 1) subpastas
+            if type(makefolder) == "function" and type(isfolder) == "function" then
+                local Made = true
+
+                for _, Path in ipairs({
+                    Storage.Root,
+                    Storage.Root .. "/Configs",
+                    Storage.Root .. "/Assets",
+                    Storage.Root .. "/Settings"
+                }) do
+                    local Success = pcall(function()
+                        if not isfolder(Path) then
+                            makefolder(Path)
+                        end
+                    end)
+
+                    if not Success then
+                        Made = false
+                        break
+                    end
+                end
+
+                if Made then
+                    Storage.Mode = "folders"
+
+                    if not Probe() then
+                        Storage.Mode = "memory"
+                    end
+                end
+            end
+
+            -- 2) tudo na raiz, sem criar pasta nenhuma
+            if Storage.Mode ~= "folders" then
+                Storage.Mode = "flat"
+
+                if not Probe() then
+                    Storage.Mode = "memory"
+                end
+            end
+        end
+
+        -- Compat: scripts do hub montam caminho na mão a partir daqui
+        -- (`Library.Folders.Configs .. "/" .. nome`). Dentro da lib ninguém
+        -- mais faz isso — tudo passa por FilePath/FileWrite/FileRead, que é o
+        -- único jeito de o modo flat funcionar. Aqui os valores viram o
+        -- diretório REAL de cada modo, pra que essa concatenação externa
+        -- continue caindo num lugar gravável.
+        if Storage.Mode == "flat" then
+            Library.Folders = {
+                Directory = "",
+                Configs   = "",
+                Assets    = "",
+                Settings  = ""
+            }
+        end
+
+        -- Quem só quer saber "dá pra persistir entre sessões?".
+        Library.FileSystemReady = Storage.Mode ~= "memory"
+    end
+-- ============================================================
 -- [ modulo: Keys.lua ]
 -- ============================================================
 
@@ -433,12 +655,8 @@ local Library do
 
     Library.Theme = TableClone(Themes["Preset"])
 
-    -- Folders
-    for Index, Value in Library.Folders do 
-        if not isfolder(Value) then
-            makefolder(Value)
-        end
-    end
+    -- (a criação de pastas mudou de casa: virou o módulo Storage, que sonda
+    -- o que o executor aceita e escolhe entre subpasta, prefixo ou memória.)
 
     local AutoExecGuardKey = "DzLibV3_AutoExecGuard"
     local AutoExecSourceKeys = {
@@ -942,31 +1160,62 @@ local Library do
 
     -- Custom font
     local CustomFont = { } do
+        -- Baixa a fonte e registra como asset. Devolve nil (em vez de estourar)
+        -- quando o executor não deixa gravar arquivo — ver `FileSystemReady`
+        -- em Themes.lua. Sem isso a lib inteira morria no boot em executor sem
+        -- sandbox de arquivo.
         function CustomFont:New(Name, Weight, Style, Data)
-            if not isfile(Data.Id) then 
-                writefile(Data.Id, game:HttpGet(Data.Url))
+            -- `getcustomasset` precisa de um arquivo REAL no disco, então o
+            -- modo "memory" do Storage não serve aqui.
+            if not Library.FileSystemReady or type(getcustomasset) ~= "function" then
+                return nil
             end
 
-            local Data = {
-                name = Name,
-                faces = {
-                    {
-                        name = Name,
-                        weight = Weight,
-                        style = Style,
-                        assetId = getcustomasset(Data.Id)
+            local TtfFile = Name .. ".ttf"
+            local FontFile = Name .. ".font"
+
+            local Success, Result = pcall(function()
+                if not Library:FileExists("Assets", TtfFile) then
+                    if not Library:FileWrite("Assets", TtfFile, game:HttpGet(Data.Url)) then
+                        return nil
+                    end
+                end
+
+                local FontData = {
+                    name = Name,
+                    faces = {
+                        {
+                            name = Name,
+                            weight = Weight,
+                            style = Style,
+                            assetId = getcustomasset(Library:FilePath("Assets", TtfFile))
+                        }
                     }
                 }
-            }
 
-            writefile(`{Library.Folders.Assets}/{Name}.font`, HttpService:JSONEncode(Data))
-            return Font.new(getcustomasset(`{Library.Folders.Assets}/{Name}.font`))
+                if not Library:FileWrite("Assets", FontFile, HttpService:JSONEncode(FontData)) then
+                    return nil
+                end
+
+                return Font.new(getcustomasset(Library:FilePath("Assets", FontFile)))
+            end)
+
+            return Success and Result or nil
         end
 
         Library.Font = CustomFont:New("OutfitMedium", 400, "Regular", {
             Id = "OutfitMedium",
             Url = "https://github.com/sametexe001/luas/raw/refs/heads/main/fonts/Outfit-Medium.ttf"
         })
+
+        -- Sem a fonte custom a UI ainda tem que subir: cai numa fonte nativa.
+        if not Library.Font then
+            local BuiltinSuccess, Builtin = pcall(function()
+                return Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal)
+            end)
+
+            Library.Font = BuiltinSuccess and Builtin or Font.fromEnum(Enum.Font.Gotham)
+        end
 
         local TitleFontSuccess, TitleFont = pcall(function()
             return Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.ExtraBold, Enum.FontStyle.Normal)
@@ -1317,35 +1566,21 @@ local Library do
     end
 
     Library.DeleteConfig = function(self, Config)
-        if isfile(Library.Folders.Configs .. "/" .. Config) then 
-            delfile(Library.Folders.Configs .. "/" .. Config)
-        end
+        return self:FileDelete("Configs", Config)
     end
 
+    -- Nomes dos configs salvos, sem a extensão. O Storage já devolve só o nome
+    -- do arquivo e já lida com o modo em vigor (subpasta, prefixo ou memória).
     Library.RefreshConfigsList = function(self, Element)
-        local List = { }
         local ReturnList = { }
 
-        List = listfiles(Library.Folders.Configs)
-
-        for Index = 1, #List do 
-            local File = List[Index]
-
+        for _, File in next, self:FileList("Configs") do
             if File:sub(-5) == ".json" then
-                local Position = File:find(".json", 1, true)
-                local StartPosition = Position
-
-                local Character = File:sub(Position, Position)
-                while Character ~= "/" and Character ~= "\\" and Character ~= "" do
-                    Position = Position - 1
-                    Character = File:sub(Position, Position)
-                end
-
-                if Character == "/" or Character == "\\" then
-                    TableInsert(ReturnList, File:sub(Position + 1, StartPosition - 1))
-                end
+                TableInsert(ReturnList, File:sub(1, #File - 5))
             end
         end
+
+        table.sort(ReturnList)
 
         if Element then
             Element:Refresh(ReturnList)
@@ -1360,7 +1595,7 @@ local Library do
 
     Library.GetExecutorSettingsPath = function(self)
         local PlayerName = LocalPlayer and LocalPlayer.Name or "default"
-        return self.Folders.Settings .. "/" .. PlayerName .. ".json"
+        return self:FilePath("Settings", PlayerName .. ".json")
     end
 
     Library.NormalizeMenuKeybind = function(self, Value)
@@ -1407,7 +1642,7 @@ local Library do
     end
 
     Library.GetAutoloadPath = function(self)
-        return self.Folders.Settings .. "/autoload.txt"
+        return self:FilePath("Settings", "autoload.txt")
     end
 
     Library.ResolveTeleportQueueFunction = function(self)
@@ -1476,19 +1711,15 @@ local Library do
 
         self._ExecutorSettingsLoaded = true
 
-        if type(readfile) ~= "function" or type(isfile) ~= "function" then
-            return false, "filesystem unavailable"
-        end
+        local SettingsFile = (LocalPlayer and LocalPlayer.Name or "default") .. ".json"
 
-        local Path = self:GetExecutorSettingsPath()
-        local OkIsFile, HasFile = pcall(isfile, Path)
-        if not OkIsFile or not HasFile then
+        if not self:FileExists("Settings", SettingsFile) then
             return false, "settings file missing"
         end
 
-        local OkRead, Raw = pcall(readfile, Path)
-        if not OkRead or type(Raw) ~= "string" or Raw == "" then
-            return false, Raw
+        local Raw = self:FileRead("Settings", SettingsFile)
+        if type(Raw) ~= "string" or Raw == "" then
+            return false, "settings file unreadable"
         end
 
         local OkDecode, Decoded = pcall(function()
@@ -1510,13 +1741,10 @@ local Library do
     end
 
     Library.SaveExecutorSettings = function(self)
-        if type(writefile) ~= "function" then
-            return false, "filesystem unavailable"
-        end
+        local SettingsFile = (LocalPlayer and LocalPlayer.Name or "default") .. ".json"
 
-        local OkWrite, Result = pcall(writefile, self:GetExecutorSettingsPath(), HttpService:JSONEncode(self.ExecutorSettings))
-        if not OkWrite then
-            return false, Result
+        if not self:FileWrite("Settings", SettingsFile, HttpService:JSONEncode(self.ExecutorSettings)) then
+            return false, "failed to write settings"
         end
 
         return true
@@ -1585,18 +1813,12 @@ local Library do
     end
 
     Library.GetAutoloadConfigName = function(self)
-        if type(isfile) ~= "function" or type(readfile) ~= "function" then
+        if not self:FileExists("Settings", "autoload.txt") then
             return nil
         end
 
-        local Path = self:GetAutoloadPath()
-        local OkIsFile, HasFile = pcall(isfile, Path)
-        if not OkIsFile or not HasFile then
-            return nil
-        end
-
-        local OkRead, Name = pcall(readfile, Path)
-        if not OkRead or type(Name) ~= "string" then
+        local Name = self:FileRead("Settings", "autoload.txt")
+        if type(Name) ~= "string" then
             return nil
         end
 
@@ -1611,32 +1833,24 @@ local Library do
     end
 
     Library.SetAutoloadConfig = function(self, Name)
-        if type(writefile) ~= "function" or type(Name) ~= "string" or Name == "" then
+        if type(Name) ~= "string" or Name == "" then
             return false, "autoload unavailable"
         end
 
-        local OkWrite, Result = pcall(writefile, self:GetAutoloadPath(), Name)
-        if not OkWrite then
-            return false, Result
+        if not self:FileWrite("Settings", "autoload.txt", Name) then
+            return false, "failed to write autoload"
         end
 
         return true
     end
 
     Library.ClearAutoloadConfig = function(self)
-        if type(isfile) ~= "function" or type(delfile) ~= "function" then
-            return false, "autoload unavailable"
-        end
-
-        local Path = self:GetAutoloadPath()
-        local OkIsFile, HasFile = pcall(isfile, Path)
-        if not OkIsFile or not HasFile then
+        if not self:FileExists("Settings", "autoload.txt") then
             return false, "autoload not set"
         end
 
-        local OkDelete, Result = pcall(delfile, Path)
-        if not OkDelete then
-            return false, Result
+        if not self:FileDelete("Settings", "autoload.txt") then
+            return false, "failed to clear autoload"
         end
 
         return true
@@ -1689,15 +1903,13 @@ local Library do
 
         self:WaitForFlagRegistration()
 
-        local Path = self.Folders.Configs .. "/" .. Name .. ".json"
-        local OkIsFile, HasFile = pcall(isfile, Path)
-        if not OkIsFile or not HasFile then
+        if not self:FileExists("Configs", Name .. ".json") then
             return false, "autoload config missing"
         end
 
-        local OkRead, RawConfig = pcall(readfile, Path)
-        if not OkRead or type(RawConfig) ~= "string" then
-            return false, RawConfig
+        local RawConfig = self:FileRead("Configs", Name .. ".json")
+        if type(RawConfig) ~= "string" then
+            return false, "autoload config unreadable"
         end
 
         local Success, Result = self:LoadConfig(RawConfig)
@@ -7815,25 +8027,18 @@ local Library do
                             return
                         end
 
-                        local Path = Library.Folders.Configs .. "/" .. ConfigName .. ".json"
-                        local OkIsFile, Exists = pcall(isfile, Path)
-                        if not OkIsFile then
-                            SetConfigFeedback("storage unavailable", 3, "Configs")
-                            return
-                        end
+                        local File = ConfigName .. ".json"
 
-                        if Exists then
+                        if Library:FileExists("Configs", File) then
                             SetConfigFeedback("config already exists", 3, "Configs")
                             return
                         end
 
-                        local OkWrite, Result = pcall(writefile, Path, Library:GetConfig())
-                        if OkWrite then
+                        if Library:FileWrite("Configs", File, Library:GetConfig()) then
                             RefreshConfigs(ConfigName)
                             SetConfigFeedback("created " .. ConfigName, 3, "Configs")
                         else
                             SetConfigFeedback("failed to create config", 3, "Configs")
-                            warn("[dzlibv3] create config failed:", Result)
                         end
                     end
                 })
@@ -7846,9 +8051,8 @@ local Library do
                             return
                         end
 
-                        local Path = Library.Folders.Configs .. "/" .. ConfigSelected .. ".json"
-                        local OkRead, RawConfig = pcall(readfile, Path)
-                        if not OkRead or type(RawConfig) ~= "string" then
+                        local RawConfig = Library:FileRead("Configs", ConfigSelected .. ".json")
+                        if type(RawConfig) ~= "string" then
                             SetConfigFeedback("failed to read config", 3, "Configs")
                             return
                         end
@@ -7870,12 +8074,10 @@ local Library do
                             return
                         end
 
-                        local OkWrite, Result = pcall(writefile, Library.Folders.Configs .. "/" .. ConfigSelected .. ".json", Library:GetConfig())
-                        if OkWrite then
+                        if Library:FileWrite("Configs", ConfigSelected .. ".json", Library:GetConfig()) then
                             SetConfigFeedback("saved " .. ConfigSelected, 3, "Configs")
                         else
                             SetConfigFeedback("failed to save config", 3, "Configs")
-                            warn("[dzlibv3] save config failed:", Result)
                         end
                     end
                 })
@@ -7889,10 +8091,8 @@ local Library do
                         end
 
                         local Name = ConfigSelected
-                        local OkDelete, Result = pcall(delfile, Library.Folders.Configs .. "/" .. Name .. ".json")
-                        if not OkDelete then
+                        if not Library:FileDelete("Configs", Name .. ".json") then
                             SetConfigFeedback("failed to delete config", 3, "Configs")
-                            warn("[dzlibv3] delete config failed:", Result)
                             return
                         end
 
