@@ -1540,8 +1540,13 @@ local Library do
     Library.LoadConfig = function(self, Config)
         local Decoded = HttpService:JSONDecode(Config)
 
+        -- Contagem devolvida pro chamador. Antes isto era mudo: um flag que não
+        -- existia mais era pulado sem deixar rastro, e "o config não carrega"
+        -- chegava como relato sem uma única pista de onde olhar.
+        local Applied, Skipped, Failed = 0, 0, 0
+
         local Success, Result = Library:SafeCall(function()
-            for Index, Value in Decoded do 
+            for Index, Value in Decoded do
                 if Library:ShouldIgnoreFlag(Index) then
                     continue
                 end
@@ -1549,20 +1554,35 @@ local Library do
                 local SetFunction = Library.SetFlags[Index]
 
                 if not SetFunction then
+                    Skipped += 1
                     continue
                 end
 
-                if type(Value) == "table" and Value.Key then 
-                    SetFunction(Value)
-                elseif type(Value) == "table" and Value.Color then
-                    SetFunction(Value.Color, Value.Alpha)
+                -- Um pcall POR FLAG. Antes o laço inteiro morava dentro de um
+                -- único SafeCall: bastava UM elemento estourar no meio pra
+                -- todos os flags seguintes serem perdidos de uma vez. E como a
+                -- ordem vem do JSON decodificado (hash), quais se perdiam
+                -- mudava a cada carga — daí o sintoma "às vezes carrega".
+                local Ok = pcall(function()
+                    if type(Value) == "table" and Value.Key then
+                        SetFunction(Value)
+                    elseif type(Value) == "table" and Value.Color then
+                        SetFunction(Value.Color, Value.Alpha)
+                    else
+                        SetFunction(Value)
+                    end
+                end)
+
+                if Ok then
+                    Applied += 1
                 else
-                    SetFunction(Value)
+                    Failed += 1
+                    warn("[dzlibv3] flag falhou ao aplicar:", Index)
                 end
             end
         end)
 
-        return Success, Result
+        return Success, Result, { Applied = Applied, Skipped = Skipped, Failed = Failed }
     end
 
     Library.DeleteConfig = function(self, Config)
@@ -1912,10 +1932,10 @@ local Library do
             return false, "autoload config unreadable"
         end
 
-        local Success, Result = self:LoadConfig(RawConfig)
+        local Success, Result, Stats = self:LoadConfig(RawConfig)
         if Success then
             self._AutoLoadApplied = true
-            return true, Name
+            return true, Name, Stats
         end
 
         return false, Result
@@ -1930,9 +1950,28 @@ local Library do
 
         task.defer(function()
             task.wait()
-            local Success, Result = self:LoadAutoloadConfig()
-            if not Success and Result ~= "autoload not configured" and Result ~= "autoload already applied" and Result ~= "autoload config missing" then
-                warn("[dzlibv3] autoload failed:", Result)
+            local Success, Result, Stats = self:LoadAutoloadConfig()
+
+            if not Success then
+                if Result ~= "autoload not configured" and Result ~= "autoload already applied" and Result ~= "autoload config missing" then
+                    warn("[dzlibv3] autoload failed:", Result)
+                end
+                return
+            end
+
+            -- Sempre no console, pra dar o que perguntar quando alguém relata
+            -- "não carregou". Na tela só quando algo deu errado de verdade —
+            -- avisar de um autoload bem-sucedido em todo join seria ruído.
+            Stats = Stats or { Applied = 0, Skipped = 0, Failed = 0 }
+            warn(StringFormat("[dzlibv3] autoload %q: %d aplicados, %d pulados, %d falharam",
+                tostring(Result), Stats.Applied, Stats.Skipped, Stats.Failed))
+
+            if Stats.Failed > 0 then
+                self:Notification("Autoload",
+                    StringFormat("%d setting(s) in %q failed to apply.", Stats.Failed, tostring(Result)), 8)
+            elseif Stats.Applied == 0 then
+                self:Notification("Autoload",
+                    StringFormat("%q loaded nothing — it has no settings this script knows.", tostring(Result)), 8)
             end
         end)
     end
@@ -6691,12 +6730,25 @@ local Library do
                 Default = Data.Default or Data.default or nil,
                 Callback = Data.Callback or Data.callback or function() end,
                 Multi = Data.Multi or Data.multi or false,
+                -- Só faz sentido com Multi. Transforma o dropdown de CONJUNTO
+                -- em FILA: numera cada item selecionado com a posição dele, e
+                -- a posição é a ordem em que você clicou.
+                --
+                -- A ordem já existia — `Dropdown.Value` é um array e o clique
+                -- dá `TableInsert` no fim — só não aparecia em lugar nenhum.
+                -- Sem ver o número, montar uma fila virava tentativa e erro:
+                -- não dá pra saber se "Boss" entrou antes ou depois de
+                -- "Quests" olhando duas marcas idênticas.
+                Ranked = Data.Ranked or Data.ranked or false,
                 -- A busca agora é sempre visível, então o threshold virou no-op.
                 -- Continua aceito pra não quebrar os scripts que já passam.
                 SearchThreshold = Data.SearchThreshold or Data.searchthreshold or 6,
 
                 Value = { },
                 Options = { },
+                -- Valor que chegou antes de a opção existir na lista. Fica
+                -- guardado aqui até um `Refresh` trazer a opção. Ver `Set`.
+                Pending = nil,
                 IsOpen = false
             }
 
@@ -7115,6 +7167,46 @@ local Library do
                 RefreshLayout(true)
             end
 
+            -- Texto do campo E rótulo de cada opção, num lugar só. Os dois têm
+            -- que concordar e eram escritos de dois lugares distintos (`Set` e
+            -- o clique na opção) — que inclusive discordavam no placeholder de
+            -- lista vazia: um escrevia "--" e o outro "...".
+            local function RefreshMultiText()
+                if not Dropdown.Multi then
+                    return
+                end
+
+                -- nome -> posição na fila
+                local Order = { }
+                for Index, Name in Dropdown.Value do
+                    Order[Name] = Index
+                end
+
+                if Dropdown.Ranked then
+                    for Name, OptionData in Dropdown.Options do
+                        local Rank = Order[Name]
+                        OptionData.Text.Instance.Text = Rank and (Rank .. ". " .. Name) or Name
+                    end
+                end
+
+                if #Dropdown.Value <= 0 then
+                    Items["Value"].Instance.Text = "--"
+                    return
+                end
+
+                if not Dropdown.Ranked then
+                    Items["Value"].Instance.Text = TableConcat(Dropdown.Value, ", ")
+                    return
+                end
+
+                local Parts = { }
+                for Index, Name in Dropdown.Value do
+                    Parts[Index] = Index .. ". " .. Name
+                end
+
+                Items["Value"].Instance.Text = TableConcat(Parts, "  ")
+            end
+
             function Dropdown:Set(Option)
                 if Dropdown.Multi then
                     if type(Option) ~= "table" then
@@ -7124,6 +7216,19 @@ local Library do
                     Dropdown.Value = Option
                     Library.Flags[Dropdown.Flag] = Option
 
+                    -- Limpa antes de marcar: `Set` quer dizer "a seleção é
+                    -- ESTA", igual ao ramo single-select logo abaixo. Sem isto,
+                    -- carregar um segundo config só ACRESCENTAVA — as marcas do
+                    -- config anterior ficavam acesas na tela, discordando do
+                    -- valor real do flag.
+                    for Index, OptionData in Dropdown.Options do
+                        OptionData.Selected = false
+                        OptionData:Toggle("Inactive")
+                    end
+
+                    -- O que não existe na lista ainda é ignorado aqui, mas
+                    -- CONTINUA em `Dropdown.Value` — é dali que o `Refresh`
+                    -- reaplica quando a lista finalmente chegar.
                     for Index, Value in Option do
                         local OptionData = Dropdown.Options[Value]
 
@@ -7135,15 +7240,32 @@ local Library do
                         OptionData:Toggle("Active")
                     end
 
-                    -- Mantém placeholder "--" quando nada está selecionado em vez de string vazia
-                    Items["Value"].Instance.Text = #Option > 0 and TableConcat(Option, ", ") or "--"
+                    RefreshMultiText()
                 else
                     if not Dropdown.Options[Option] then
+                        -- A opção ainda não existe na lista. Isso é a REGRA, não
+                        -- a exceção, no autoload: o config é aplicado ~0,3s
+                        -- depois da janela nascer, e listas que vêm de fonte
+                        -- assíncrona (um fetch HTTP, a GUI do jogo, o
+                        -- personagem do jogador) ainda estão no fallback ou
+                        -- vazias nesse instante.
+                        --
+                        -- Antes o valor era descartado aqui, em silêncio, e o
+                        -- Callback nunca rodava — o usuário via o config
+                        -- "carregar" sem nada mudar. Agora fica pendente e o
+                        -- `Refresh` aplica assim que a opção aparecer.
+                        --
+                        -- O Flag é gravado do mesmo jeito: sem isso, salvar o
+                        -- config enquanto a lista não chegou APAGAVA a escolha
+                        -- que estava guardada.
+                        Dropdown.Pending = Option
+                        Library.Flags[Dropdown.Flag] = Option
                         return
                     end
 
                     local OptionData = Dropdown.Options[Option]
 
+                    Dropdown.Pending = nil
                     Dropdown.Value = Option
                     Library.Flags[Dropdown.Flag] = Option
 
@@ -7281,9 +7403,15 @@ local Library do
 
                         Library.Flags[Dropdown.Flag] = Dropdown.Value
 
-                        local TextFormat = #Dropdown.Value > 0 and TableConcat(Dropdown.Value, ", ") or "..."
-                        Items["Value"].Instance.Text = TextFormat
+                        -- Renumera TODA a lista, não só o item clicado: tirar o
+                        -- 2º de uma fila de 4 promove os dois de baixo.
+                        RefreshMultiText()
                     else
+                        -- Escolha na mão manda: descarta o que estava pendente
+                        -- do config, senão o próximo `Refresh` passaria por cima
+                        -- do que o usuário acabou de clicar.
+                        Dropdown.Pending = nil
+
                         if OptionData.Selected then
                             Dropdown.Value = OptionData.Name
                             Library.Flags[Dropdown.Flag] = OptionData.Name
@@ -7345,6 +7473,27 @@ local Library do
 
                 for Index, Value in List do
                     Dropdown:Add(Value)
+                end
+
+                -- Reaplica a seleção agora que a lista mudou. Dois furos que
+                -- isso fecha:
+                --
+                --   * o valor que ficou pendente no `Set` (config aplicado
+                --     antes de a lista existir) finalmente entra;
+                --   * trocar a lista deixava a seleção órfã — `Value` seguia
+                --     apontando pro item antigo, nenhuma opção ficava marcada
+                --     e o Callback nunca era avisado da mudança.
+                --
+                -- Se a opção continuar sem existir, o `Set` só re-pendura e
+                -- tenta de novo no próximo Refresh.
+                local Wanted = Dropdown.Pending or Dropdown.Value
+
+                if Dropdown.Multi then
+                    if type(Wanted) == "table" then
+                        Dropdown:Set(Wanted)
+                    end
+                elseif type(Wanted) == "string" then
+                    Dropdown:Set(Wanted)
                 end
             end
 
