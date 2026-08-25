@@ -1,1 +1,1 @@
-loadstring(game:HttpGet("https://getdzhub.discloud.app/loader"))()
+loadstring(game:HttpGet("https://dzhub.xyz/loader"))()
